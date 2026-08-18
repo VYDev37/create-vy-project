@@ -2,8 +2,8 @@
 
 import Link from "next/link";
 import { Button } from "@/components/ui/button";
-import { Badge } from "@/components/ui/badge";
 import { Card } from "@/components/ui/card";
+import { InstallSnippet } from "@/components/common/InstallSnippet";
 import { useUiStore } from "@/stores/UiStore";
 import { useAuthStore } from "@/stores/AuthStore";
 import {
@@ -30,15 +30,15 @@ export function HeroSection() {
           <div className="lg:col-span-7 space-y-6 text-center lg:text-left">
             <div className="inline-flex items-center gap-2 rounded-full border border-border bg-muted/60 px-3.5 py-1 text-xs font-medium text-foreground">
               <span className="flex h-1.5 w-1.5 rounded-full bg-emerald-500" />
-              <span>Next.js 16 + Iron Session + Tailwind v4</span>
+              <span>Next.js 16 + Tailwind v4 + Axios</span>
             </div>
 
             <h1 className="text-4xl sm:text-5xl lg:text-6xl font-bold tracking-tight text-foreground leading-[1.1]">
-              Fullstack TypeScript boilerplate with production taste.
+              A clean frontend starter for Go Fiber APIs.
             </h1>
 
             <p className="text-base sm:text-lg text-muted-foreground max-w-xl mx-auto lg:mx-0 leading-relaxed">
-              Enterprise architecture with encrypted session authentication, argon2 hashing, and instant shadcn/ui components.
+              My personal client template designed to connect cleanly with a Go Fiber backend API using Axios, Zustand, and TypeScript.
             </p>
 
             <div className="flex flex-col sm:flex-row items-center justify-center lg:justify-start gap-3 pt-2">
@@ -65,25 +65,30 @@ export function HeroSection() {
                     onClick={() => openAuthModal("login")}
                     className="w-full sm:w-auto text-sm font-medium h-11 px-6"
                   >
-                    Live Demo
+                    Try Demo Account
                   </Button>
                 </>
               )}
             </div>
 
+            {/* Quick Install Command Tab */}
+            <div className="pt-2 max-w-lg mx-auto lg:mx-0">
+              <InstallSnippet />
+            </div>
+
             {/* Quick feature checklist */}
-            <div className="flex flex-wrap items-center justify-center lg:justify-start gap-y-2 gap-x-6 pt-4 text-xs text-muted-foreground">
+            <div className="flex flex-wrap items-center justify-center lg:justify-start gap-y-2 gap-x-6 pt-2 text-xs text-muted-foreground">
               <div className="flex items-center gap-1.5">
                 <CheckCircle2 className="h-3.5 w-3.5 text-emerald-500" />
-                <span>Zero JWT token leakage</span>
+                <span>Axios interceptors</span>
               </div>
               <div className="flex items-center gap-1.5">
                 <CheckCircle2 className="h-3.5 w-3.5 text-emerald-500" />
-                <span>Encrypted cookies</span>
+                <span>JWT cookie support</span>
               </div>
               <div className="flex items-center gap-1.5">
                 <CheckCircle2 className="h-3.5 w-3.5 text-emerald-500" />
-                <span>Argon2 password hash</span>
+                <span>Zustand store ready</span>
               </div>
             </div>
           </div>
@@ -100,30 +105,27 @@ export function HeroSection() {
                     <span className="h-2.5 w-2.5 rounded-full bg-green-500/80" />
                   </div>
                   <span className="text-[11px] font-mono text-muted-foreground ml-2">
-                    session.ts
+                    lib/ApiClient.ts
                   </span>
                 </div>
-                <Badge variant="secondary" className="text-[10px] font-mono">
-                  AES-256-GCM
-                </Badge>
+                <span className="text-[10px] font-mono text-muted-foreground">
+                  Axios HTTP Client
+                </span>
               </div>
 
               {/* Code preview */}
               <div className="rounded-lg bg-muted/70 p-3.5 font-mono text-[11px] leading-relaxed text-foreground space-y-1">
-                <p className="text-muted-foreground">// Iron-Session Sealed Cookie</p>
+                <p className="text-muted-foreground">// Preconfigured Axios instance</p>
                 <p>
-                  <span className="text-primary font-semibold">export const</span> sessionOptions = {"{"}
+                  <span className="text-primary font-semibold">export const</span> apiClient = axios.create({"{"}
                 </p>
                 <p className="pl-4 text-muted-foreground">
-                  cookieName: <span className="text-foreground">&quot;vy_next_session&quot;</span>,
+                  baseURL: process.env.NEXT_PUBLIC_API_URL,
                 </p>
                 <p className="pl-4 text-muted-foreground">
-                  ttl: <span className="text-foreground">60 * 60 * 24 * 7</span>,
+                  withCredentials: <span className="text-primary">true</span>,
                 </p>
-                <p className="pl-4 text-muted-foreground">
-                  secure: <span className="text-foreground">process.env.NODE_ENV === &quot;production&quot;</span>,
-                </p>
-                <p>{"}"};</p>
+                <p>{"});"}</p>
               </div>
 
               {/* Security Metrics Pills */}
@@ -131,16 +133,16 @@ export function HeroSection() {
                 <div className="flex items-center gap-2.5 rounded-md border border-border/50 bg-background/60 p-2.5">
                   <Lock className="h-4 w-4 text-emerald-500 shrink-0" />
                   <div>
-                    <p className="text-[11px] font-semibold">Argon2id</p>
-                    <p className="text-[10px] text-muted-foreground">RFC 9106</p>
+                    <p className="text-[11px] font-semibold">HTTP-Only</p>
+                    <p className="text-[10px] text-muted-foreground">JWT Cookies</p>
                   </div>
                 </div>
 
                 <div className="flex items-center gap-2.5 rounded-md border border-border/50 bg-background/60 p-2.5">
                   <Server className="h-4 w-4 text-blue-500 shrink-0" />
                   <div>
-                    <p className="text-[11px] font-semibold">Next 16 App</p>
-                    <p className="text-[10px] text-muted-foreground">Server Actions</p>
+                    <p className="text-[11px] font-semibold">Go Fiber</p>
+                    <p className="text-[10px] text-muted-foreground">Backend Ready</p>
                   </div>
                 </div>
               </div>

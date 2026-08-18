@@ -1,14 +1,14 @@
+import { Link } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
+import { InstallSnippet } from "@/components/common/InstallSnippet";
 import { useUiStore } from "@/stores/UiStore";
 import { useAuthStore } from "@/stores/AuthStore";
 import {
   ArrowRight,
+  CheckCircle2,
   Server,
-  Lock,
-  Layers,
   Zap,
-  Code2,
 } from "lucide-react";
 
 export function HeroSection() {
@@ -22,87 +22,128 @@ export function HeroSection() {
         <div className="h-[450px] w-[650px] rounded-full bg-gradient-to-tr from-primary/20 via-primary/5 to-transparent blur-3xl" />
       </div>
 
-      <div className="container mx-auto px-4 sm:px-6 relative z-10">
-        <div className="flex flex-col items-center text-center space-y-6 max-w-4xl mx-auto">
-          {/* Release Badge */}
-          <div className="inline-flex items-center gap-2 rounded-full border border-primary/20 bg-primary/5 px-3 py-1 text-xs font-medium text-primary">
-            <span className="relative flex h-2 w-2">
-              <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-primary opacity-75" />
-              <span className="relative inline-flex rounded-full h-2 w-2 bg-primary" />
-            </span>
-            <span>React 19 + Vite 6 + Tailwind CSS v4</span>
+      <div className="relative mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
+        <div className="grid grid-cols-1 lg:grid-cols-12 gap-12 items-center">
+          {/* Left Column: Value Prop */}
+          <div className="lg:col-span-7 space-y-6 text-center lg:text-left">
+            <div className="inline-flex items-center gap-2 rounded-full border border-border bg-muted/60 px-3.5 py-1 text-xs font-medium text-foreground">
+              <span className="flex h-1.5 w-1.5 rounded-full bg-emerald-500" />
+              <span>React 19 + Vite 6 + Tailwind v4</span>
+            </div>
+
+            <h1 className="text-4xl sm:text-5xl lg:text-6xl font-bold tracking-tight text-foreground leading-[1.1]">
+              A fast, lightweight SPA template for Go backends.
+            </h1>
+
+            <p className="text-base sm:text-lg text-muted-foreground max-w-xl mx-auto lg:mx-0 leading-relaxed">
+              My personal React client starter configured with Vite 6, Axios, Zustand, and TypeScript, ready for Go Fiber APIs.
+            </p>
+
+            <div className="flex flex-col sm:flex-row items-center justify-center lg:justify-start gap-3 pt-2">
+              {isAuthenticated ? (
+                <Link to="/dashboard" className="w-full sm:w-auto">
+                  <Button size="lg" className="w-full sm:w-auto gap-2 text-sm font-medium h-11 px-6 cursor-pointer">
+                    Open Dashboard
+                    <ArrowRight className="h-4 w-4" />
+                  </Button>
+                </Link>
+              ) : (
+                <>
+                  <Button
+                    size="lg"
+                    onClick={() => openAuthModal("register")}
+                    className="w-full sm:w-auto gap-2 text-sm font-medium h-11 px-6 cursor-pointer"
+                  >
+                    Get Started
+                    <ArrowRight className="h-4 w-4" />
+                  </Button>
+                  <Button
+                    variant="outline"
+                    size="lg"
+                    onClick={() => openAuthModal("login")}
+                    className="w-full sm:w-auto text-sm font-medium h-11 px-6 cursor-pointer"
+                  >
+                    Try Demo Account
+                  </Button>
+                </>
+              )}
+            </div>
+
+            {/* Quick Install Command Tab */}
+            <div className="pt-2 max-w-lg mx-auto lg:mx-0">
+              <InstallSnippet />
+            </div>
+
+            {/* Quick feature checklist */}
+            <div className="flex flex-wrap items-center justify-center lg:justify-start gap-y-2 gap-x-6 pt-2 text-xs text-muted-foreground">
+              <div className="flex items-center gap-1.5">
+                <CheckCircle2 className="h-3.5 w-3.5 text-emerald-500" />
+                <span>Instant Vite HMR</span>
+              </div>
+              <div className="flex items-center gap-1.5">
+                <CheckCircle2 className="h-3.5 w-3.5 text-emerald-500" />
+                <span>Tailwind CSS v4</span>
+              </div>
+              <div className="flex items-center gap-1.5">
+                <CheckCircle2 className="h-3.5 w-3.5 text-emerald-500" />
+                <span>React Router ready</span>
+              </div>
+            </div>
           </div>
 
-          {/* Main Headline */}
-          <h1 className="text-3xl sm:text-5xl md:text-6xl font-bold tracking-tight text-foreground max-w-3xl leading-[1.12]">
-            High Performance{" "}
-            <span className="bg-gradient-to-r from-primary via-primary/80 to-primary/60 bg-clip-text text-transparent">
-              React + Vite
-            </span>{" "}
-            Boilerplate
-          </h1>
+          {/* Right Column: Code & Architecture Card */}
+          <div id="architecture" className="lg:col-span-5">
+            <Card className="border-border/60 bg-card/70 backdrop-blur-sm shadow-xl p-5 space-y-4">
+              {/* Terminal header */}
+              <div className="flex items-center justify-between border-b border-border/50 pb-3">
+                <div className="flex items-center gap-2">
+                  <div className="flex gap-1.5">
+                    <span className="h-2.5 w-2.5 rounded-full bg-red-500/80" />
+                    <span className="h-2.5 w-2.5 rounded-full bg-yellow-500/80" />
+                    <span className="h-2.5 w-2.5 rounded-full bg-green-500/80" />
+                  </div>
+                  <span className="text-[11px] font-mono text-muted-foreground ml-2">
+                    src/lib/ApiClient.ts
+                  </span>
+                </div>
+                <span className="text-[10px] font-mono text-muted-foreground">
+                  Axios HTTP Client
+                </span>
+              </div>
 
-          {/* Subtitle */}
-          <p className="text-muted-foreground text-sm sm:text-base md:text-lg max-w-2xl font-normal leading-relaxed">
-            Ultra-fast SPA frontend with Tailwind CSS v4, shadcn/ui components,
-            Zustand state management, Zod schema validation, and Axios integration for Go Fiber backends.
-          </p>
+              {/* Code preview */}
+              <div className="rounded-lg bg-muted/70 p-3.5 font-mono text-[11px] leading-relaxed text-foreground space-y-1">
+                <p className="text-muted-foreground">// Direct backend connection</p>
+                <p>
+                  <span className="text-primary font-semibold">export const</span> apiClient = axios.create({"{"}
+                </p>
+                <p className="pl-4 text-muted-foreground">
+                  baseURL: import.meta.env.VITE_API_URL,
+                </p>
+                <p className="pl-4 text-muted-foreground">
+                  withCredentials: <span className="text-primary">true</span>,
+                </p>
+                <p>{"});"}</p>
+              </div>
 
-          {/* Action CTAs */}
-          <div className="flex flex-wrap items-center justify-center gap-3 pt-2">
-            {isAuthenticated ? (
-              <a href="#dashboard">
-                <Button size="lg" className="h-10 px-5 text-sm font-medium gap-2 shadow-xs cursor-pointer">
-                  Open Dashboard <ArrowRight className="h-4 w-4" />
-                </Button>
-              </a>
-            ) : (
-              <Button
-                size="lg"
-                onClick={() => openAuthModal("register")}
-                className="h-10 px-5 text-sm font-medium gap-2 shadow-xs cursor-pointer"
-              >
-                Get Started <ArrowRight className="h-4 w-4" />
-              </Button>
-            )}
+              {/* Security Metrics Pills */}
+              <div className="grid grid-cols-2 gap-2 pt-1">
+                <div className="flex items-center gap-2.5 rounded-md border border-border/50 bg-background/60 p-2.5">
+                  <Zap className="h-4 w-4 text-amber-500 shrink-0" />
+                  <div>
+                    <p className="text-[11px] font-semibold">Vite 6</p>
+                    <p className="text-[10px] text-muted-foreground">Lightning Fast</p>
+                  </div>
+                </div>
 
-            <a
-              href="https://github.com/VYDev37/create-vy-project"
-              target="_blank"
-              rel="noreferrer"
-            >
-              <Button
-                variant="outline"
-                size="lg"
-                className="h-10 px-5 text-sm font-medium gap-2 bg-background/50 backdrop-blur-xs cursor-pointer"
-              >
-                <Code2 className="h-4 w-4" />
-                GitHub Repository
-              </Button>
-            </a>
-          </div>
-
-          {/* Key Value Highlights */}
-          <div className="grid grid-cols-2 md:grid-cols-4 gap-3 pt-6 w-full max-w-3xl">
-            <Card className="p-3 bg-card/40 backdrop-blur-xs border-border/50 flex flex-col items-center justify-center text-center">
-              <Zap className="h-4 w-4 text-amber-500 mb-1" />
-              <p className="text-xs font-semibold">Vite 6 Fast HMR</p>
-              <p className="text-[10px] text-muted-foreground">Instant server start</p>
-            </Card>
-            <Card className="p-3 bg-card/40 backdrop-blur-xs border-border/50 flex flex-col items-center justify-center text-center">
-              <Layers className="h-4 w-4 text-blue-500 mb-1" />
-              <p className="text-xs font-semibold">Tailwind CSS v4</p>
-              <p className="text-[10px] text-muted-foreground">Oxide engine</p>
-            </Card>
-            <Card className="p-3 bg-card/40 backdrop-blur-xs border-border/50 flex flex-col items-center justify-center text-center">
-              <Lock className="h-4 w-4 text-emerald-500 mb-1" />
-              <p className="text-xs font-semibold">Cookie Auth</p>
-              <p className="text-[10px] text-muted-foreground">HTTP-only JWT tokens</p>
-            </Card>
-            <Card className="p-3 bg-card/40 backdrop-blur-xs border-border/50 flex flex-col items-center justify-center text-center">
-              <Server className="h-4 w-4 text-violet-500 mb-1" />
-              <p className="text-xs font-semibold">Axios + Zod</p>
-              <p className="text-[10px] text-muted-foreground">Type-safe API calls</p>
+                <div className="flex items-center gap-2.5 rounded-md border border-border/50 bg-background/60 p-2.5">
+                  <Server className="h-4 w-4 text-blue-500 shrink-0" />
+                  <div>
+                    <p className="text-[11px] font-semibold">Go Fiber</p>
+                    <p className="text-[10px] text-muted-foreground">Backend API</p>
+                  </div>
+                </div>
+              </div>
             </Card>
           </div>
         </div>

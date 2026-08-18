@@ -17,10 +17,10 @@ export function CtaSection() {
         <Card className="relative overflow-hidden p-8 sm:p-12 text-center border-border/70 bg-gradient-to-b from-card to-muted/40 shadow-lg space-y-6">
           <div className="space-y-3 max-w-xl mx-auto">
             <h2 className="text-2xl sm:text-3xl font-bold tracking-tight text-foreground">
-              Ready to build your next production application?
+              Ready to start your project?
             </h2>
             <p className="text-sm text-muted-foreground leading-relaxed">
-              Start with a fully configured fullstack starter with authentication, type safety, and clean UI architecture.
+              Use this boilerplate as a starting point. It is set up with tidy defaults so you can focus on building your features.
             </p>
           </div>
 
@@ -28,7 +28,7 @@ export function CtaSection() {
             {isAuthenticated ? (
               <Link href="/dashboard">
                 <Button size="lg" className="gap-2 text-sm font-medium h-11 px-8">
-                  Go to Dashboard
+                  Open Dashboard
                   <ArrowRight className="h-4 w-4" />
                 </Button>
               </Link>

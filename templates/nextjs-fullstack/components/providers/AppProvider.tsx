@@ -1,10 +1,17 @@
 "use client";
 
 import * as React from "react";
+import type { User } from "@/schemas/UserSchema";
 import { ThemeProvider } from "./ThemeProvider";
 import { TooltipProvider } from "@/components/ui/tooltip";
+import { UserProvider } from "./UserProvider";
 
-export function AppProvider({ children }: { children: React.ReactNode }) {
+interface AppProviderProps {
+  initialUser?: User | null;
+  children: React.ReactNode;
+}
+
+export function AppProvider({ initialUser, children }: AppProviderProps) {
   return (
     <ThemeProvider
       attribute="class"
@@ -12,7 +19,9 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
       enableSystem
       disableTransitionOnChange
     >
-      <TooltipProvider delay={200}>{children}</TooltipProvider>
+      <UserProvider initialUser={initialUser}>
+        <TooltipProvider delay={200}>{children}</TooltipProvider>
+      </UserProvider>
     </ThemeProvider>
   );
 }

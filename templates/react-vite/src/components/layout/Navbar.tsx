@@ -1,3 +1,4 @@
+import { Link, useNavigate } from "react-router-dom";
 import { BrandLogo } from "@/components/common/BrandLogo";
 import { ThemeToggle } from "@/components/common/ThemeToggle";
 import { MobileNav } from "./MobileNav";
@@ -18,24 +19,30 @@ import { useAuth } from "@/hooks/useAuth";
 import { LayoutDashboard, LogOut } from "lucide-react";
 
 export const NAV_LINKS = [
-  { label: "Features", href: "#features" },
-  { label: "Architecture", href: "#architecture" },
-  { label: "Stack", href: "#stack" },
+  { label: "Features", href: "/#features" },
+  { label: "Currency API", href: "/#currency" },
+  { label: "Stack", href: "/#stack" },
 ];
 
-export function Navbar({ onNavigate }: { onNavigate?: (view: "home" | "dashboard") => void }) {
+export function Navbar() {
+  const navigate = useNavigate();
   const { openAuthModal } = useUiStore();
   const { user, isAuthenticated } = useAuthStore();
   const { logout } = useAuth();
 
   const handleSmoothScroll = (e: React.MouseEvent<HTMLAnchorElement>, href: string) => {
-    if (href.startsWith("#")) {
+    if (href.startsWith("/#")) {
       e.preventDefault();
-      if (onNavigate) onNavigate("home");
-      const targetId = href.replace("#", "");
-      const elem = document.getElementById(targetId);
-      if (elem) {
-        elem.scrollIntoView({ behavior: "smooth" });
+      const targetId = href.replace("/#", "");
+      if (window.location.pathname !== "/") {
+        navigate("/");
+        setTimeout(() => {
+          const elem = document.getElementById(targetId);
+          if (elem) elem.scrollIntoView({ behavior: "smooth" });
+        }, 100);
+      } else {
+        const elem = document.getElementById(targetId);
+        if (elem) elem.scrollIntoView({ behavior: "smooth" });
       }
     }
   };
@@ -55,9 +62,9 @@ export function Navbar({ onNavigate }: { onNavigate?: (view: "home" | "dashboard
       <div className="container mx-auto flex h-14 items-center justify-between px-4 sm:px-6">
         {/* Brand & Left Navigation */}
         <div className="flex items-center gap-8">
-          <div onClick={() => onNavigate && onNavigate("home")} className="cursor-pointer">
+          <Link to="/" className="cursor-pointer">
             <BrandLogo />
-          </div>
+          </Link>
 
           <nav className="hidden md:flex items-center gap-6 text-xs font-medium text-muted-foreground">
             {NAV_LINKS.map((link) => (
@@ -108,7 +115,7 @@ export function Navbar({ onNavigate }: { onNavigate?: (view: "home" | "dashboard
                 </DropdownMenuGroup>
                 <DropdownMenuSeparator />
                 <DropdownMenuItem
-                  onClick={() => onNavigate && onNavigate("dashboard")}
+                  onClick={() => navigate("/dashboard")}
                   className="cursor-pointer gap-2 flex items-center w-full"
                 >
                   <LayoutDashboard className="h-4 w-4" />
@@ -148,7 +155,7 @@ export function Navbar({ onNavigate }: { onNavigate?: (view: "home" | "dashboard
         {/* Mobile Navigation Drawer */}
         <div className="flex md:hidden items-center gap-2">
           <ThemeToggle />
-          <MobileNav onNavigate={onNavigate} />
+          <MobileNav />
         </div>
       </div>
     </header>

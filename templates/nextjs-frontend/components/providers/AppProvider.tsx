@@ -3,6 +3,7 @@
 import * as React from "react";
 import { ThemeProvider } from "./ThemeProvider";
 import { TooltipProvider } from "@/components/ui/tooltip";
+import { UserProvider } from "./UserProvider";
 
 export function AppProvider({ children }: { children: React.ReactNode }) {
   return (
@@ -12,7 +13,9 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
       enableSystem
       disableTransitionOnChange
     >
-      <TooltipProvider delay={200}>{children}</TooltipProvider>
+      <UserProvider>
+        <TooltipProvider delay={200}>{children}</TooltipProvider>
+      </UserProvider>
     </ThemeProvider>
   );
 }

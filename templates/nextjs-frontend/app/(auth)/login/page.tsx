@@ -1,7 +1,13 @@
+import type { Metadata } from "next";
 import Link from "next/link";
 import { BrandLogo } from "@/components/common/BrandLogo";
 import { LoginForm } from "@/components/auth/LoginForm";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+
+export const metadata: Metadata = {
+  title: "Sign In | Frontend Starter",
+  description: "Sign in with your username or email and password.",
+};
 
 export default function LoginPage() {
   return (
@@ -17,11 +23,11 @@ export default function LoginPage() {
               Sign In
             </CardTitle>
             <CardDescription className="text-xs text-muted-foreground">
-              Enter your email and password to access your account
+              Enter your credentials to access your account
             </CardDescription>
           </CardHeader>
           <CardContent>
-            <LoginForm redirectTo="/dashboard" />
+            <LoginForm />
 
             <div className="mt-6 text-center text-xs text-muted-foreground">
               Don&apos;t have an account?{" "}

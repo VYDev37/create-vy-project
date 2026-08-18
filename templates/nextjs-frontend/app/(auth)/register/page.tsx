@@ -1,7 +1,13 @@
+import type { Metadata } from "next";
 import Link from "next/link";
 import { BrandLogo } from "@/components/common/BrandLogo";
 import { RegisterForm } from "@/components/auth/RegisterForm";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+
+export const metadata: Metadata = {
+  title: "Create Account | Frontend Starter",
+  description: "Create a new account with username, email, and password.",
+};
 
 export default function RegisterPage() {
   return (
@@ -17,11 +23,11 @@ export default function RegisterPage() {
               Create Account
             </CardTitle>
             <CardDescription className="text-xs text-muted-foreground">
-              Sign up for full access to the starter template
+              Fill in the fields below to create a new user account
             </CardDescription>
           </CardHeader>
           <CardContent>
-            <RegisterForm redirectTo="/dashboard" />
+            <RegisterForm />
 
             <div className="mt-6 text-center text-xs text-muted-foreground">
               Already have an account?{" "}

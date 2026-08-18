@@ -8,29 +8,29 @@ export function BentoFeatures() {
       <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
         <div className="text-center max-w-2xl mx-auto mb-12 space-y-3">
           <Badge variant="outline" className="text-xs">
-            Architecture
+            Overview
           </Badge>
           <h2 className="text-3xl sm:text-4xl font-bold tracking-tight text-foreground">
-            Engineered for security and speed.
+            Simple, organized, and ready to use.
           </h2>
           <p className="text-sm sm:text-base text-muted-foreground">
-            A battle-tested foundation built with zero compromises on type safety and user experience.
+            Everything is set up with practical defaults so you can start coding your own features right away.
           </p>
         </div>
 
         {/* Bento Grid */}
         <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-          {/* Card 1: Iron Session (Span 2 on Desktop) */}
+          {/* Card 1: Iron Session */}
           <Card className="md:col-span-2 p-6 md:p-8 flex flex-col justify-between border-border/60 bg-gradient-to-br from-card to-muted/40 relative overflow-hidden">
             <div className="space-y-3 z-10 max-w-md">
               <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-primary/10 text-primary">
                 <Shield className="h-5 w-5" />
               </div>
               <h3 className="text-xl font-bold tracking-tight text-foreground">
-                Sealed Iron Session Authentication
+                Cookie-Based Session Auth
               </h3>
               <p className="text-sm text-muted-foreground leading-relaxed">
-                Stateful-feeling stateless sessions stored in encrypted cookies. No database lookups needed on every request, eliminating server bottlenecks while preventing XSS token theft.
+                Clean sessions sealed inside encrypted HTTP-only cookies using Iron Session. No extra session server needed to keep user state.
               </p>
             </div>
 
@@ -42,7 +42,7 @@ export function BentoFeatures() {
                 SameSite: Lax
               </span>
               <span className="rounded bg-background/80 px-2 py-1 border border-border/40">
-                Encrypted Payload
+                AES-256-GCM
               </span>
             </div>
           </Card>
@@ -57,7 +57,7 @@ export function BentoFeatures() {
                 Argon2id Hashing
               </h3>
               <p className="text-sm text-muted-foreground leading-relaxed">
-                Winner of the Password Hashing Competition. Resistant to GPU and side-channel attacks with configurable memory and time cost.
+                Passwords are safely hashed using Argon2id with solid default parameters, keeping user data secure.
               </p>
             </div>
             <div className="mt-6 pt-4 border-t border-border/40 text-xs font-mono text-emerald-600 dark:text-emerald-400">
@@ -72,40 +72,40 @@ export function BentoFeatures() {
                 <Layers className="h-5 w-5" />
               </div>
               <h3 className="text-xl font-bold tracking-tight text-foreground">
-                Tailwind CSS v4 + shadcn
+                Tailwind CSS v4 & shadcn
               </h3>
               <p className="text-sm text-muted-foreground leading-relaxed">
-                Lightning fast CSS engine with native `@theme` tokens, zero runtime style cost, and accessible UI primitives ready to customize.
+                Tidy UI primitives styled with modern CSS variables, supporting both light and dark mode out of the box.
               </p>
             </div>
             <div className="mt-6 pt-4 border-t border-border/40 text-xs font-mono text-muted-foreground">
-              Pre-built Theme Variables
+              Dark and Light Themes
             </div>
           </Card>
 
-          {/* Card 4: End-to-End Type Safety (Span 2 on Desktop) */}
+          {/* Card 4: Type Safety & Zod */}
           <Card className="md:col-span-2 p-6 md:p-8 flex flex-col justify-between border-border/60 bg-gradient-to-br from-card to-muted/40">
             <div className="space-y-3 max-w-md">
               <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-primary/10 text-primary">
                 <Cpu className="h-5 w-5" />
               </div>
               <h3 className="text-xl font-bold tracking-tight text-foreground">
-                Zod Validation and Zustand Stores
+                Zod Validation & React Hook Form
               </h3>
               <p className="text-sm text-muted-foreground leading-relaxed">
-                Strict type validation on client forms and server boundaries with predictable lightweight state management for notifications, modals, and reactive sessions.
+                Single source of truth for types and validation schemas. Forms are responsive, clear, and fully type-checked.
               </p>
             </div>
 
             <div className="mt-6 pt-4 border-t border-border/40 flex flex-wrap gap-2 text-xs font-mono text-muted-foreground">
               <span className="rounded bg-background/80 px-2 py-1 border border-border/40">
-                Zod v4
+                Zod Schemas
               </span>
               <span className="rounded bg-background/80 px-2 py-1 border border-border/40">
-                Zustand v5
+                React Hook Form
               </span>
               <span className="rounded bg-background/80 px-2 py-1 border border-border/40">
-                TypeScript Strict
+                Zustand Store
               </span>
             </div>
           </Card>

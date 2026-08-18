@@ -1,8 +1,8 @@
-import { useState, useCallback, useEffect } from "react";
+import { useState, useCallback } from "react";
 import { useAuthStore } from "@/stores/AuthStore";
 import { apiClient, getApiErrorMessage } from "@/lib/ApiClient";
 import type { LoginInput, RegisterInput } from "@/schemas/AuthSchema";
-import { UserSchema, type User } from "@/schemas/UserSchema";
+import { UserSchema } from "@/schemas/UserSchema";
 
 interface ApiResponse<T> {
   success: boolean;
@@ -33,10 +33,6 @@ export function useAuth() {
       setLoading(false);
     }
   }, [setUser, setLoading]);
-
-  useEffect(() => {
-    checkSession();
-  }, [checkSession]);
 
   const login = async (credentials: LoginInput) => {
     setError(null);

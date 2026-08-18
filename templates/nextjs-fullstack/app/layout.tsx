@@ -3,6 +3,7 @@ import { Geist, Geist_Mono } from "next/font/google";
 import "./globals.css";
 import { cn } from "@/lib/utils";
 import { AppProvider } from "@/components/providers/AppProvider";
+import { getCurrentSession } from "@/lib/Session";
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -15,15 +16,17 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata: Metadata = {
-  title: "NextStack - Fullstack Next.js Boilerplate",
+  title: "NextStack | Fullstack Next.js Boilerplate",
   description: "Next.js 16 App Router fullstack boilerplate with Iron Session, Tailwind CSS v4, and shadcn/ui.",
 };
 
-export default function RootLayout({
+export default async function RootLayout({
   children,
 }: Readonly<{
   children: React.ReactNode;
 }>) {
+  const session = await getCurrentSession();
+
   return (
     <html
       lang="en"
@@ -36,7 +39,7 @@ export default function RootLayout({
       )}
     >
       <body className="min-h-full flex flex-col bg-background text-foreground selection:bg-primary/20 selection:text-primary">
-        <AppProvider>
+        <AppProvider initialUser={session.user || null}>
           <div className="flex min-h-screen flex-col">{children}</div>
         </AppProvider>
       </body>

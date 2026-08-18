@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { Link, useNavigate } from "react-router-dom";
 import { BrandLogo } from "@/components/common/BrandLogo";
 import { ThemeToggle } from "@/components/common/ThemeToggle";
 import { Button } from "@/components/ui/button";
@@ -15,21 +16,27 @@ import { useAuth } from "@/hooks/useAuth";
 import { Menu, LayoutDashboard, LogOut, LogIn, UserPlus } from "lucide-react";
 import { NAV_LINKS } from "./Navbar";
 
-export function MobileNav({ onNavigate }: { onNavigate?: (view: "home" | "dashboard") => void }) {
+export function MobileNav() {
   const [open, setOpen] = useState(false);
+  const navigate = useNavigate();
   const { openAuthModal } = useUiStore();
   const { user, isAuthenticated } = useAuthStore();
   const { logout } = useAuth();
 
   const handleSmoothScroll = (e: React.MouseEvent<HTMLAnchorElement>, href: string) => {
-    if (href.startsWith("#")) {
+    if (href.startsWith("/#")) {
       e.preventDefault();
       setOpen(false);
-      if (onNavigate) onNavigate("home");
-      const targetId = href.replace("#", "");
-      const elem = document.getElementById(targetId);
-      if (elem) {
-        elem.scrollIntoView({ behavior: "smooth" });
+      const targetId = href.replace("/#", "");
+      if (window.location.pathname !== "/") {
+        navigate("/");
+        setTimeout(() => {
+          const elem = document.getElementById(targetId);
+          if (elem) elem.scrollIntoView({ behavior: "smooth" });
+        }, 100);
+      } else {
+        const elem = document.getElementById(targetId);
+        if (elem) elem.scrollIntoView({ behavior: "smooth" });
       }
     }
   };
@@ -47,7 +54,9 @@ export function MobileNav({ onNavigate }: { onNavigate?: (view: "home" | "dashbo
         <div className="space-y-6">
           <SheetHeader className="text-left">
             <SheetTitle>
-              <BrandLogo />
+              <Link to="/" onClick={() => setOpen(false)}>
+                <BrandLogo />
+              </Link>
             </SheetTitle>
           </SheetHeader>
 
@@ -82,7 +91,7 @@ export function MobileNav({ onNavigate }: { onNavigate?: (view: "home" | "dashbo
                 variant="outline"
                 onClick={() => {
                   setOpen(false);
-                  if (onNavigate) onNavigate("dashboard");
+                  navigate("/dashboard");
                 }}
                 className="w-full justify-start gap-2 h-9"
               >

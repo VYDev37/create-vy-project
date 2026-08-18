@@ -9,7 +9,7 @@ export function Footer() {
           <div className="flex flex-col items-center md:items-start gap-2">
             <BrandLogo />
             <p className="text-xs text-muted-foreground">
-              Fullstack Next.js boilerplate with Iron Session, Tailwind CSS v4, and shadcn/ui.
+              A clean Next.js frontend starter ready for Go Fiber backends.
             </p>
           </div>
 
@@ -35,16 +35,16 @@ export function Footer() {
         </div>
 
         <div className="mt-8 border-t border-border/40 pt-6 flex flex-col sm:flex-row items-center justify-between gap-4 text-xs text-muted-foreground">
-          <p>© {new Date().getFullYear()} NextStack Starter. Built with precision.</p>
+          <p>© {new Date().getFullYear()} VYDev37. Released under the MIT License.</p>
           <div className="flex items-center gap-2">
+            <span className="inline-flex items-center rounded-md bg-muted px-2 py-0.5 text-[11px] font-medium text-foreground">
+              Next.js 16
+            </span>
             <span className="inline-flex items-center rounded-md bg-muted px-2 py-0.5 text-[11px] font-medium text-foreground">
               Tailwind v4
             </span>
             <span className="inline-flex items-center rounded-md bg-muted px-2 py-0.5 text-[11px] font-medium text-foreground">
-              Iron-Session
-            </span>
-            <span className="inline-flex items-center rounded-md bg-muted px-2 py-0.5 text-[11px] font-medium text-foreground">
-              Argon2
+              Axios Client
             </span>
           </div>
         </div>

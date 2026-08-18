@@ -1,6 +1,9 @@
 export const skillMap: Record<string, string[]> = {
   'nextjs-fullstack': [
+    'general/stop-slop.md',
     'frontend/nextjs-conventions.md',
+    'frontend/frontend-developer.md',
+    'frontend/react-state-management.md',
     'backend/drizzle-patterns.md',
     'frontend/nextjs-best-practice.md',
     'frontend/react-patterns.md',
@@ -10,7 +13,10 @@ export const skillMap: Record<string, string[]> = {
     'frontend/taste-skill.md',
   ],
   'nextjs-frontend': [
+    'general/stop-slop.md',
     'frontend/nextjs-conventions.md',
+    'frontend/frontend-developer.md',
+    'frontend/react-state-management.md',
     'frontend/nextjs-best-practice.md',
     'frontend/react-patterns.md',
     'frontend/tailwind-v4.md',
@@ -18,16 +24,21 @@ export const skillMap: Record<string, string[]> = {
     'frontend/taste-skill.md',
   ],
   'react-vite': [
+    'general/stop-slop.md',
+    'frontend/frontend-developer.md',
+    'frontend/react-state-management.md',
     'frontend/react-patterns.md',
     'frontend/ui-ux-pro-max.md',
     'frontend/taste-skill.md',
   ],
   'go-fiber': [
+    'general/stop-slop.md',
     'backend/go-fiber-convention.md',
     'backend/gorm-patterns.md',
     'backend/jwt-auth.md',
   ],
   'laravel': [
+    'general/stop-slop.md',
     'backend/laravel-convention.md',
   ],
 };
