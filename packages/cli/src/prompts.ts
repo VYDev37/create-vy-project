@@ -101,11 +101,6 @@ export async function runPrompts(): Promise<Answers> {
           label: "Go Fiber v3",
           hint: "Go Fiber v3, GORM, PostgreSQL, JWT Auth",
         },
-        {
-          value: "laravel",
-          label: "Laravel",
-          hint: "PHP Laravel REST API",
-        },
       ],
     });
 

@@ -190,7 +190,6 @@ export async function scaffold(answers: Answers) {
       if (await fs.pathExists(srcSkillPath)) {
         await fs.copy(srcSkillPath, destSkillPath);
       } else {
-        // If skill file is not created yet, create a markdown placeholder
         await fs.writeFile(
           destSkillPath,
           `# ${path.basename(relFile, ".md")}\n\nConventions and standards for ${stack}.\n`,
@@ -200,19 +199,41 @@ export async function scaffold(answers: Answers) {
     }
   }
 
-  // 5. Generate and write AGENTS.md to project root
   const agentsMdContent = generateAgentsMd(selectedStacks);
   await fs.writeFile(path.join(projectRoot, "AGENTS.md"), agentsMdContent, "utf-8");
   s.stop(".agents/skills/ and AGENTS.md configured");
 
-  // Print next steps
   let nextSteps = "";
   if (isCombo) {
-    nextSteps = `Backend:\n  cd ${projectName}/backend && go run ./cmd/main.go\n\nFrontend:\n  cd ${projectName}/frontend && pnpm install && pnpm dev`;
-  } else if (backend) {
-    nextSteps = `cd ${projectName}\ngo run ./cmd/main.go`;
+    nextSteps = `1. Backend (Go Fiber):
+   cd ${projectName}/backend
+   go run ./internal/scripts/auto_migrate.go
+   go run ./cmd/main.go
+
+2. Frontend:
+   cd ${projectName}/frontend
+   pnpm install
+   pnpm dev`;
+  } else if (frontend === "nextjs-fullstack") {
+    nextSteps = `cd ${projectName}
+pnpm install
+pnpm db:push
+pnpm db:seed
+pnpm dev
+
+Database commands:
+  pnpm db:push     (sync schema changes to local SQLite)
+  pnpm db:seed     (seed default demo account)
+  pnpm db:studio   (open Drizzle visual database viewer)
+  pnpm db:migrate  (apply migrations)`;
+  } else if (backend === "go-fiber") {
+    nextSteps = `cd ${projectName}
+go run ./internal/scripts/auto_migrate.go
+go run ./cmd/main.go`;
   } else if (frontend) {
-    nextSteps = `cd ${projectName}\npnpm install\npnpm dev`;
+    nextSteps = `cd ${projectName}
+pnpm install
+pnpm dev`;
   }
 
   note(nextSteps, "Next steps to run your project:");
