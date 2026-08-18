@@ -9,8 +9,8 @@ import { CtaSection } from "@/components/sections/CtaSection";
 import { AuthModal } from "@/components/auth/AuthModal";
 
 export const metadata: Metadata = {
-  title: "Frontend Starter | Clean Next.js 16 SPA",
-  description: "A clean client-only Next.js starter with Axios, Zustand, and Tailwind CSS v4, ready for Go Fiber backends.",
+  title: "Home",
+  description: "Next.js 16 frontend starter connected to Go Fiber REST API.",
 };
 
 export default function Home() {

@@ -20,7 +20,7 @@ export function BrandLogo({ className, showText = true }: BrandLogoProps) {
       </div>
       {showText && (
         <span className="font-semibold tracking-tight text-foreground text-base">
-          Next<span className="text-muted-foreground font-normal">Stack</span>
+          Project<span className="text-muted-foreground font-normal">VY</span>
         </span>
       )}
     </Link>

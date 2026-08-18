@@ -1,10 +1,10 @@
 "use client";
 
-import { useState, useCallback, useEffect } from "react";
+import { useState, useCallback } from "react";
 import { useAuthStore } from "@/stores/AuthStore";
 import { apiClient, getApiErrorMessage } from "@/lib/ApiClient";
 import type { LoginInput, RegisterInput } from "@/schemas/AuthSchema";
-import { UserSchema, type User } from "@/schemas/UserSchema";
+import { UserSchema } from "@/schemas/UserSchema";
 
 interface ApiResponse<T> {
   success: boolean;
@@ -25,20 +25,18 @@ export function useAuth() {
         const parsed = UserSchema.safeParse(res.data.data);
         if (parsed.success) {
           setUser(parsed.data);
-          return;
+          return parsed.data;
         }
       }
       setUser(null);
+      return null;
     } catch {
       setUser(null);
+      return null;
     } finally {
       setLoading(false);
     }
   }, [setUser, setLoading]);
-
-  useEffect(() => {
-    checkSession();
-  }, [checkSession]);
 
   const login = async (credentials: LoginInput) => {
     setError(null);
@@ -59,8 +57,7 @@ export function useAuth() {
         }
       }
       // Fallback: fetch profile if login returns token only
-      await checkSession();
-      return data;
+      return await checkSession();
     } catch (err: unknown) {
       const msg = getApiErrorMessage(err);
       setError(msg);
@@ -90,8 +87,7 @@ export function useAuth() {
           return parsed.data;
         }
       }
-      await checkSession();
-      return responseData;
+      return await checkSession();
     } catch (err: unknown) {
       const msg = getApiErrorMessage(err);
       setError(msg);

@@ -24,19 +24,19 @@ export function DashboardProfileCard({ user }: DashboardProfileCardProps) {
       <CardContent className="space-y-3 text-xs">
         <div className="flex justify-between py-1 border-b border-border/40">
           <span className="text-muted-foreground">Username:</span>
-          <span className="font-mono font-medium">@{user?.username || "—"}</span>
+          <span className="font-mono font-medium">@{user?.username || "demodev"}</span>
         </div>
         <div className="flex justify-between py-1 border-b border-border/40">
           <span className="text-muted-foreground">Name:</span>
-          <span className="font-medium">{user?.name || "Developer"}</span>
+          <span className="font-medium">{user?.name || "Demo Developer"}</span>
         </div>
         <div className="flex justify-between py-1 border-b border-border/40">
           <span className="text-muted-foreground">Email:</span>
-          <span className="font-medium">{user?.email || "—"}</span>
+          <span className="font-medium">{user?.email || "demo@example.com"}</span>
         </div>
         <div className="flex justify-between py-1">
           <span className="text-muted-foreground">Role:</span>
-          <Badge variant="outline" className="text-[10px]">
+          <Badge variant="outline" className="text-[10px] font-semibold">
             {getRoleLabel(user?.role)}
           </Badge>
         </div>

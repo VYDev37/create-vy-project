@@ -5,7 +5,7 @@ import { LoginForm } from "@/components/auth/LoginForm";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 
 export const metadata: Metadata = {
-  title: "Sign In | NextStack",
+  title: "Sign In",
   description: "Sign in with your username or email and password.",
 };
 
@@ -18,22 +18,20 @@ export default function LoginPage() {
         </div>
 
         <Card className="border-border/60 shadow-lg">
-          <CardHeader className="space-y-1 text-center">
-            <CardTitle className="text-2xl font-bold tracking-tight">
-              Sign In
-            </CardTitle>
-            <CardDescription className="text-xs text-muted-foreground">
-              Enter your credentials to access your account
+          <CardHeader className="text-center space-y-1 pb-4">
+            <CardTitle className="text-xl font-bold">Welcome Back</CardTitle>
+            <CardDescription className="text-xs">
+              Enter your credentials to access your dashboard
             </CardDescription>
           </CardHeader>
           <CardContent>
-            <LoginForm />
+            <LoginForm redirectTo="/dashboard" />
 
             <div className="mt-6 text-center text-xs text-muted-foreground">
               Don&apos;t have an account?{" "}
               <Link
                 href="/register"
-                className="font-medium text-foreground underline underline-offset-4 hover:text-primary transition-colors"
+                className="font-medium text-primary hover:underline underline-offset-4"
               >
                 Sign up
               </Link>

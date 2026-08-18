@@ -8,9 +8,14 @@ import (
 )
 
 func NewCORS(cfg *config.Config) fiber.Handler {
+	origins := []string{"http://localhost:3000", "http://localhost:5173"}
+	if cfg.FrontendURL != "" && cfg.FrontendURL != "http://localhost:3000" && cfg.FrontendURL != "http://localhost:5173" {
+		origins = append(origins, cfg.FrontendURL)
+	}
+
 	return cors.New(cors.Config{
-		AllowOrigins:     []string{cfg.FrontendURL},
-		AllowHeaders:     []string{"Origin", "Content-Type", "Accept", "Authorization", "Cookie"},
+		AllowOrigins:     origins,
+		AllowHeaders:     []string{"Origin", "Content-Type", "Accept", "Authorization", "Cookie", "X-Requested-With"},
 		AllowMethods:     []string{"GET", "POST", "PUT", "DELETE", "PATCH", "OPTIONS", "HEAD"},
 		AllowCredentials: true,
 	})

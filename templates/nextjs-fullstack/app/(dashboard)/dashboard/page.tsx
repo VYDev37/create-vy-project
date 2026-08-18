@@ -4,7 +4,7 @@ import { getCurrentSession } from "@/lib/Session";
 import { DashboardClient } from "./DashboardClient";
 
 export const metadata: Metadata = {
-  title: "Dashboard | NextStack",
+  title: "Dashboard",
   description: "User dashboard and session overview with verified authentication.",
 };
 

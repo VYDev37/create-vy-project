@@ -5,7 +5,7 @@ export function proxy(request: NextRequest) {
   const { pathname } = request.nextUrl;
 
   if (pathname.startsWith("/dashboard")) {
-    const sessionCookie = request.cookies.get("session_token");
+    const sessionCookie = request.cookies.get("token");
 
     if (!sessionCookie || !sessionCookie.value) {
       const loginUrl = new URL("/login", request.url);

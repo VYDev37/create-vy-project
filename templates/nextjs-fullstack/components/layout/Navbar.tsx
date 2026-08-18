@@ -51,6 +51,12 @@ export function Navbar() {
     }
   };
 
+  const handleLogout = async () => {
+    await logout();
+    router.push("/");
+    router.refresh();
+  };
+
   const getInitials = (name?: string) => {
     if (!name) return "U";
     return name
@@ -72,7 +78,7 @@ export function Navbar() {
                 key={link.href}
                 href={link.href}
                 onClick={(e) => handleSmoothScroll(e, link.href)}
-                className="transition-colors hover:text-foreground cursor-pointer"
+                className="hover:text-foreground transition-colors cursor-pointer"
               >
                 {link.label}
               </a>
@@ -91,11 +97,10 @@ export function Navbar() {
                   <Button
                     variant="ghost"
                     className="relative h-9 w-9 rounded-full p-0"
-                    aria-label="User menu"
                   >
                     <Avatar className="h-9 w-9 border border-border">
                       <AvatarFallback className="bg-primary/10 text-primary text-xs font-semibold">
-                        {getInitials(user.name)}
+                        {getInitials(user?.name)}
                       </AvatarFallback>
                     </Avatar>
                   </Button>
@@ -106,13 +111,13 @@ export function Navbar() {
                   <DropdownMenuLabel className="font-normal">
                     <div className="flex flex-col space-y-1">
                       <p className="text-sm font-medium leading-none text-foreground">
-                        {user.name}
+                        {user?.name || "Developer"}
                       </p>
                       <p className="text-xs leading-none text-muted-foreground font-mono">
-                        @{user.username}
+                        @{user?.username}
                       </p>
                       <p className="text-[11px] leading-none text-muted-foreground truncate pt-0.5">
-                        {user.email}
+                        {user?.email}
                       </p>
                     </div>
                   </DropdownMenuLabel>
@@ -128,7 +133,7 @@ export function Navbar() {
                 />
                 <DropdownMenuSeparator />
                 <DropdownMenuItem
-                  onClick={logout}
+                  onClick={handleLogout}
                   className="cursor-pointer text-destructive focus:text-destructive gap-2"
                 >
                   <LogOut className="h-4 w-4" />

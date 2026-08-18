@@ -103,10 +103,12 @@ export function MobileNav({ navLinks }: MobileNavProps) {
               </Link>
               <Button
                 variant="destructive"
-                className="w-full justify-start gap-2 h-9"
-                onClick={() => {
-                  logout();
+                className="w-full justify-start gap-2 h-9 cursor-pointer"
+                onClick={async () => {
                   setMobileMenuOpen(false);
+                  await logout();
+                  router.push("/");
+                  router.refresh();
                 }}
               >
                 <LogOut className="h-4 w-4" />

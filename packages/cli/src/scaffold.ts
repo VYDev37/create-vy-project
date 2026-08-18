@@ -48,6 +48,48 @@ async function replaceGoModulePaths(dir: string, moduleName: string) {
   }
 }
 
+export type PackageManager = "pnpm" | "npm" | "yarn" | "bun";
+
+export function getPackageManager(): PackageManager {
+  const userAgent = process.env.npm_config_user_agent;
+  if (!userAgent) return "pnpm";
+
+  if (userAgent.startsWith("pnpm")) return "pnpm";
+  if (userAgent.startsWith("yarn")) return "yarn";
+  if (userAgent.startsWith("bun")) return "bun";
+  if (userAgent.startsWith("npm")) return "npm";
+
+  return "pnpm";
+}
+
+function getInstallCmd(pkg: PackageManager): string {
+  switch (pkg) {
+    case "npm":
+      return "npm install";
+    case "yarn":
+      return "yarn install";
+    case "bun":
+      return "bun install";
+    case "pnpm":
+    default:
+      return "pnpm install";
+  }
+}
+
+function getRunCmd(pkg: PackageManager, script: string): string {
+  switch (pkg) {
+    case "npm":
+      return `npm run ${script}`;
+    case "yarn":
+      return `yarn ${script}`;
+    case "bun":
+      return `bun run ${script}`;
+    case "pnpm":
+    default:
+      return `pnpm ${script}`;
+  }
+}
+
 export async function scaffold(answers: Answers) {
   const { projectName, isCurrentDir, type, backend, frontend, username } = answers;
   const projectRoot = isCurrentDir ? process.cwd() : path.resolve(process.cwd(), projectName);
@@ -204,6 +246,10 @@ export async function scaffold(answers: Answers) {
   await fs.writeFile(path.join(projectRoot, "AGENTS.md"), agentsMdContent, "utf-8");
   s.stop(".agents/skills/ and AGENTS.md configured");
 
+  const pkgManager = getPackageManager();
+  const installCmd = getInstallCmd(pkgManager);
+  const devCmd = getRunCmd(pkgManager, "dev");
+
   let nextSteps = "";
   if (isCombo) {
     const bePath = isCurrentDir ? "backend" : `${projectName}/backend`;
@@ -215,29 +261,31 @@ export async function scaffold(answers: Answers) {
 
 2. Frontend:
    cd ${fePath}
-   pnpm install
-   pnpm dev`;
+   ${installCmd}
+   ${devCmd}`;
   } else if (frontend === "nextjs-fullstack") {
     const cdCmd = isCurrentDir ? "" : `cd ${projectName}\n`;
-    nextSteps = `${cdCmd}pnpm install
-pnpm db:push
-pnpm db:seed
-pnpm dev
+    nextSteps = `${cdCmd}${installCmd}
+${getRunCmd(pkgManager, "db:push")}
+${getRunCmd(pkgManager, "db:seed")}
+${devCmd}
 
 Database commands:
-  pnpm db:push     (sync schema changes to local SQLite)
-  pnpm db:seed     (seed default demo account)
-  pnpm db:studio   (open Drizzle visual database viewer)
-  pnpm db:migrate  (apply migrations)`;
+  ${getRunCmd(pkgManager, "db:push")}     (sync schema changes to local SQLite)
+  ${getRunCmd(pkgManager, "db:seed")}     (seed default demo account)
+  ${getRunCmd(pkgManager, "db:studio")}   (open Drizzle visual database viewer)
+  ${getRunCmd(pkgManager, "db:migrate")}  (apply migrations)`;
   } else if (backend === "go-fiber") {
     const cdCmd = isCurrentDir ? "" : `cd ${projectName}\n`;
     nextSteps = `${cdCmd}go run ./internal/scripts/auto_migrate.go
 go run ./cmd/main.go`;
   } else if (frontend) {
     const cdCmd = isCurrentDir ? "" : `cd ${projectName}\n`;
-    nextSteps = `${cdCmd}pnpm install
-pnpm dev`;
+    nextSteps = `${cdCmd}${installCmd}
+${devCmd}`;
   }
+
+  nextSteps += "\nWarning: Don't forget to edit the .env file.\n";
 
   note(nextSteps, "Next steps to run your project:");
 }

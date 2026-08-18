@@ -11,9 +11,10 @@ import { Loader2, User as UserIcon } from "lucide-react";
 
 interface LoginFormProps {
   onSuccess?: () => void;
+  onSwitchToRegister?: () => void;
 }
 
-export function LoginForm({ onSuccess }: LoginFormProps) {
+export function LoginForm({ onSuccess, onSwitchToRegister }: LoginFormProps) {
   const { login } = useAuth();
   const [serverError, setServerError] = useState<string | null>(null);
 
@@ -66,7 +67,7 @@ export function LoginForm({ onSuccess }: LoginFormProps) {
       <Button
         type="submit"
         disabled={isSubmitting}
-        className="w-full h-10 font-medium text-sm transition-all active:scale-[0.99]"
+        className="w-full h-10 font-medium text-sm transition-all active:scale-[0.99] cursor-pointer"
       >
         {isSubmitting ? (
           <>
@@ -77,6 +78,19 @@ export function LoginForm({ onSuccess }: LoginFormProps) {
           "Sign In"
         )}
       </Button>
+
+      {onSwitchToRegister && (
+        <div className="text-center text-xs text-muted-foreground pt-1">
+          Don&apos;t have an account?{" "}
+          <button
+            type="button"
+            onClick={onSwitchToRegister}
+            className="font-medium text-primary hover:underline underline-offset-4 cursor-pointer"
+          >
+            Sign up
+          </button>
+        </div>
+      )}
     </form>
   );
 }

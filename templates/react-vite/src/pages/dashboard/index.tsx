@@ -4,10 +4,10 @@ import { Button } from "@/components/ui/button";
 import { Card, CardHeader, CardTitle, CardDescription, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Skeleton } from "@/components/ui/skeleton";
+import { DashboardProfileCard } from "@/components/dashboard/DashboardProfileCard";
 import {
   CheckCircle2,
   Server,
-  User as UserIcon,
   Activity,
   ArrowLeft,
   Terminal,
@@ -84,49 +84,7 @@ export default function DashboardPage() {
       {/* Metrics & Details Grid */}
       <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
         {/* User Profile Card */}
-        <Card className="border-border/60 shadow-xs">
-          <CardHeader className="pb-3">
-            <div className="flex items-center gap-2">
-              <UserIcon className="h-4 w-4 text-primary" />
-              <CardTitle className="text-base font-semibold">
-                Profile Details
-              </CardTitle>
-            </div>
-            <CardDescription className="text-xs">
-              Current authenticated user state
-            </CardDescription>
-          </CardHeader>
-          <CardContent className="space-y-3 text-xs">
-            {isLoading ? (
-              <div className="space-y-2">
-                <Skeleton className="h-4 w-full" />
-                <Skeleton className="h-4 w-full" />
-                <Skeleton className="h-4 w-full" />
-              </div>
-            ) : (
-              <>
-                <div className="flex justify-between py-1 border-b border-border/40">
-                  <span className="text-muted-foreground">Username:</span>
-                  <span className="font-mono font-medium">@{user?.username || "demodev"}</span>
-                </div>
-                <div className="flex justify-between py-1 border-b border-border/40">
-                  <span className="text-muted-foreground">Name:</span>
-                  <span className="font-medium">{user?.name || "Demo Developer"}</span>
-                </div>
-                <div className="flex justify-between py-1 border-b border-border/40">
-                  <span className="text-muted-foreground">Email:</span>
-                  <span className="font-medium">{user?.email || "demo@example.com"}</span>
-                </div>
-                <div className="flex justify-between py-1">
-                  <span className="text-muted-foreground">Role:</span>
-                  <Badge variant="outline" className="text-[10px] font-semibold">
-                    {user?.role || "DEVELOPER"}
-                  </Badge>
-                </div>
-              </>
-            )}
-          </CardContent>
-        </Card>
+        <DashboardProfileCard user={user} />
 
         {/* API Connection Card */}
         <Card className="border-border/60 shadow-xs">

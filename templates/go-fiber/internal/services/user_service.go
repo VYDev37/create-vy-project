@@ -12,6 +12,7 @@ import (
 )
 
 type RegisterRequest struct {
+	Name     string `json:"name"`
 	Username string `json:"username"`
 	Email    string `json:"email"`
 	Password string `json:"password"`
@@ -67,9 +68,16 @@ func (s *userService) Register(req RegisterRequest) (*AuthResponse, error) {
 		return nil, errors.New("failed to hash password")
 	}
 
+	name := req.Name
+	if name == "" {
+		name = req.Username
+	}
+
 	user := models.User{
+		Name:     name,
 		Username: req.Username,
 		Email:    req.Email,
+		Role:     1, // Level 1 (USER)
 		Password: hashedPassword,
 	}
 

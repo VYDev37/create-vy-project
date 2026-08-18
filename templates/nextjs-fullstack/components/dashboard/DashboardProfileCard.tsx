@@ -1,6 +1,6 @@
 import { Card, CardHeader, CardTitle, CardDescription, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import type { User } from "@/schemas/UserSchema";
+import { type User, getRoleLabel } from "@/schemas/UserSchema";
 import { User as UserIcon } from "lucide-react";
 
 interface DashboardProfileCardProps {
@@ -37,7 +37,7 @@ export function DashboardProfileCard({ user }: DashboardProfileCardProps) {
         <div className="flex justify-between py-1">
           <span className="text-muted-foreground">Role:</span>
           <Badge variant="outline" className="text-[10px]">
-            {user.role}
+            {getRoleLabel(user.role)}
           </Badge>
         </div>
       </CardContent>

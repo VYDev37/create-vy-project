@@ -38,22 +38,38 @@
   const isAuthenticated = useAuthStore((state) => state.isAuthenticated);
   ```
 
-## 5. Type Safety & Single Source of Truth (Zod Rule)
+## 5. Type Safety & Single Source of Truth (Zod Rule & Integer Roles)
 - **Zero Arbitrary Types:** Never create loose, freehand TypeScript interfaces for core domain entities.
 - **Schema-First Inference:** Always define runtime validation schemas with Zod first in `schemas/`, then infer TypeScript types directly via `z.infer`:
   ```typescript
   import { z } from "zod";
 
-  export const UserRoleSchema = z.enum(["USER", "ADMIN", "DEVELOPER"]).default("USER");
+  export const USER_ROLES = {
+    USER: 1,
+    ADMIN: 2,
+  } as const;
+
+  export const UserRoleSchema = z.union([
+    z.literal(1),
+    z.literal(2),
+  ]).default(1);
+
   export type UserRole = z.infer<typeof UserRoleSchema>;
 
+  export function getRoleLabel(role?: number): string {
+    if (role === 2) return "ADMIN (Level 2)";
+    return "USER (Level 1)";
+  }
+
   export const UserSchema = z.object({
-    id: z.string().min(1),
+    id: z.union([z.string(), z.number()]).transform((val) => String(val)),
     username: z.string().min(3),
     name: z.string().min(2),
     email: z.string().email(),
-    role: UserRoleSchema,
+    role: z.union([z.number(), z.string()]).transform((val) => Number(val) === 2 ? 2 : 1).default(1),
+    avatarUrl: z.string().optional().nullable(),
     createdAt: z.string().optional(),
+    updatedAt: z.string().optional(),
   });
 
   export type User = z.infer<typeof UserSchema>;

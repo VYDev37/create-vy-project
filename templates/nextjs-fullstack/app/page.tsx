@@ -9,8 +9,8 @@ import { CtaSection } from "@/components/sections/CtaSection";
 import { AuthModal } from "@/components/auth/AuthModal";
 
 export const metadata: Metadata = {
-  title: "NextStack | Clean Fullstack Next.js Boilerplate",
-  description: "A clean starter template with Next.js 16, Drizzle SQLite, Iron Session auth, and Tailwind CSS v4.",
+  title: "Home",
+  description: "A clean fullstack starter with Next.js 16, Drizzle SQLite, Iron Session auth, and Tailwind CSS v4.",
 };
 
 export default function Home() {

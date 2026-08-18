@@ -11,9 +11,10 @@ import { AtSign, Loader2, Mail, User as UserIcon } from "lucide-react";
 
 interface RegisterFormProps {
   onSuccess?: () => void;
+  onSwitchToLogin?: () => void;
 }
 
-export function RegisterForm({ onSuccess }: RegisterFormProps) {
+export function RegisterForm({ onSuccess, onSwitchToLogin }: RegisterFormProps) {
   const { register: registerAuth } = useAuth();
   const [serverError, setServerError] = useState<string | null>(null);
 
@@ -97,7 +98,7 @@ export function RegisterForm({ onSuccess }: RegisterFormProps) {
       <Button
         type="submit"
         disabled={isSubmitting}
-        className="w-full h-10 font-medium text-sm transition-all active:scale-[0.99] mt-2"
+        className="w-full h-10 font-medium text-sm transition-all active:scale-[0.99] mt-2 cursor-pointer"
       >
         {isSubmitting ? (
           <>
@@ -108,6 +109,19 @@ export function RegisterForm({ onSuccess }: RegisterFormProps) {
           "Create Account"
         )}
       </Button>
+
+      {onSwitchToLogin && (
+        <div className="text-center text-xs text-muted-foreground pt-1">
+          Already have an account?{" "}
+          <button
+            type="button"
+            onClick={onSwitchToLogin}
+            className="font-medium text-primary hover:underline underline-offset-4 cursor-pointer"
+          >
+            Sign in
+          </button>
+        </div>
+      )}
     </form>
   );
 }

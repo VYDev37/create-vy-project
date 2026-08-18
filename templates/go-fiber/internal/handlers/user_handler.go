@@ -2,6 +2,7 @@ package handlers
 
 import (
 	"strconv"
+	"time"
 
 	"github.com/gofiber/fiber/v3"
 
@@ -91,7 +92,16 @@ func (h *UserHandler) Login(c fiber.Ctx) error {
 }
 
 func (h *UserHandler) Logout(c fiber.Ctx) error {
-	c.ClearCookie("token")
+	c.Cookie(&fiber.Cookie{
+		Name:     "token",
+		Value:    "",
+		Path:     "/",
+		HTTPOnly: true,
+		Secure:   false,
+		SameSite: "Lax",
+		MaxAge:   -1,
+		Expires:  time.Now().Add(-24 * time.Hour),
+	})
 
 	return c.Status(fiber.StatusOK).JSON(fiber.Map{
 		"success": true,

@@ -14,9 +14,14 @@ const geistMono = Geist_Mono({
   subsets: ["latin"],
 });
 
+const appName = process.env.NEXT_PUBLIC_APP_NAME || "Project VY";
+
 export const metadata: Metadata = {
-  title: "NextStack - Fullstack Next.js Boilerplate",
-  description: "Next.js 16 App Router fullstack boilerplate with Iron Session, Tailwind CSS v4, and shadcn/ui.",
+  title: {
+    default: appName,
+    template: `%s | ${appName}`,
+  },
+  description: `${appName} client connected to backend API.`,
 };
 
 export default function RootLayout({

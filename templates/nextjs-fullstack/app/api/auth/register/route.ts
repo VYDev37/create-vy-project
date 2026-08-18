@@ -43,7 +43,7 @@ export async function POST(req: NextRequest) {
       username: normalizedUsername,
       name: validatedData.name.trim(),
       email: normalizedEmail,
-      role: "USER" as const,
+      role: 1 as const, // Level 1 (USER)
       avatarUrl: null,
       passwordHash,
       createdAt: new Date().toISOString(),
