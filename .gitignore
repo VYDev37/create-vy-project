@@ -1,0 +1,43 @@
+# Dependencies
+node_modules/
+.pnpm-store/
+
+# Build outputs
+dist/
+.next/
+out/
+build/
+
+# Local database files
+*.db
+*.db-journal
+*.db-wal
+*.db-shm
+sqlite.db
+
+# Environment variables
+.env
+.env*.local
+!.env.example
+
+# Temporary test directories
+.temp-test/
+.test-*/
+test-sandbox/
+
+# System and logs
+.DS_Store
+*.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*
+
+# IDE & Editor
+.idea/
+.vscode/
+*.suo
+*.ntvs*
+*.njsproj
+*.sln
+*.sw?

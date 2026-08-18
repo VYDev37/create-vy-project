@@ -1,0 +1,24 @@
+{
+  "name": "create-vy-project",
+  "version": "0.1.0",
+  "type": "module",
+  "bin": {
+    "create-vy-project": "./dist/index.js"
+  },
+  "scripts": {
+    "dev": "npx tsx src/index.ts",
+    "build": "tsc"
+  },
+  "dependencies": {
+    "@clack/prompts": "latest",
+    "execa": "latest",
+    "fs-extra": "latest",
+    "tsup": "^8.5.1"
+  },
+  "devDependencies": {
+    "@types/fs-extra": "latest",
+    "@types/node": "latest",
+    "tsx": "latest",
+    "typescript": "latest"
+  }
+}
