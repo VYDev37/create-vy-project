@@ -5,7 +5,8 @@ import { scaffold } from "./scaffold.js";
 
 async function main() {
   intro("create-vy-project");
-  const answers = await runPrompts();
+  const targetArg = process.argv[2];
+  const answers = await runPrompts(targetArg);
   await scaffold(answers);
   outro("Project ready! 🚀");
 }

@@ -1,36 +1,56 @@
+import path from "node:path";
 import { text, select, isCancel, cancel } from "@clack/prompts";
 
 export type Answers = {
   projectName: string;
+  isCurrentDir?: boolean;
   type: "fullstack" | "frontend+backend" | "frontend" | "backend";
   frontend?: "nextjs-fullstack" | "nextjs-frontend" | "react-vite";
   backend?: "go-fiber" | "laravel";
   username?: string;
 };
 
-export async function runPrompts(): Promise<Answers> {
-  // 1. Project name
-  const projectName = await text({
-    message: "Project name:",
-    placeholder: "my-app",
-    defaultValue: "my-app",
-    validate: (value) => {
-      if (!value || !value.trim()) return "Project name cannot be empty";
-      if (!/^[a-zA-Z0-9-_]+$/.test(value)) {
-        return "Project name can only contain letters, numbers, hyphens, and underscores";
-      }
-      return;
-    },
-  });
+export async function runPrompts(targetArg?: string): Promise<Answers> {
+  let projectName = targetArg?.trim();
+  let isCurrentDir = false;
 
-  if (isCancel(projectName)) {
-    cancel("Operation cancelled.");
-    process.exit(0);
+  if (projectName === "." || projectName === "./") {
+    isCurrentDir = true;
+    projectName = path.basename(process.cwd());
+  } else if (!projectName) {
+    // 1. Project name prompt if not passed via CLI argument
+    const nameInput = await text({
+      message: "Project name:",
+      placeholder: "my-app (or . for current directory)",
+      defaultValue: "my-app",
+      validate: (value) => {
+        if (!value || !value.trim()) return "Project name cannot be empty";
+        const trimmed = value.trim();
+        if (trimmed === "." || trimmed === "./") return;
+        if (!/^[a-zA-Z0-9-_.]+$/.test(trimmed)) {
+          return "Project name can only contain letters, numbers, hyphens, underscores, or .";
+        }
+        return;
+      },
+    });
+
+    if (isCancel(nameInput)) {
+      cancel("Operation cancelled.");
+      process.exit(0);
+    }
+
+    const trimmed = (nameInput as string).trim();
+    if (trimmed === "." || trimmed === "./") {
+      isCurrentDir = true;
+      projectName = path.basename(process.cwd());
+    } else {
+      projectName = trimmed;
+    }
   }
 
   // 2. Project type
   const type = await select({
-    message: "Select project type:",
+    message: `Select project type for ${isCurrentDir ? `current directory (${projectName})` : projectName}:`,
     options: [
       {
         value: "backend",
@@ -132,6 +152,7 @@ export async function runPrompts(): Promise<Answers> {
 
   return {
     projectName: projectName as string,
+    isCurrentDir,
     type: type as Answers["type"],
     frontend,
     backend,

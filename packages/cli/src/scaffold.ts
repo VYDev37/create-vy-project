@@ -49,15 +49,16 @@ async function replaceGoModulePaths(dir: string, moduleName: string) {
 }
 
 export async function scaffold(answers: Answers) {
-  const { projectName, type, backend, frontend, username } = answers;
-  const projectRoot = path.resolve(process.cwd(), projectName);
+  const { projectName, isCurrentDir, type, backend, frontend, username } = answers;
+  const projectRoot = isCurrentDir ? process.cwd() : path.resolve(process.cwd(), projectName);
+  const effectiveProjectName = projectName || path.basename(projectRoot);
   const monorepoRoot = getMonorepoRoot();
   const templatesDir = path.join(monorepoRoot, "templates");
   const skillsDir = path.join(monorepoRoot, "skills");
 
   const s = spinner();
 
-  // 1. Create project root folder
+  // 1. Create project root folder if not current dir
   await fs.ensureDir(projectRoot);
 
   const isCombo = type === "frontend+backend";
@@ -69,8 +70,8 @@ export async function scaffold(answers: Answers) {
     const backendDest = isCombo ? path.join(projectRoot, "backend") : projectRoot;
     const templateSrc = path.join(templatesDir, "go-fiber");
     const goModuleName = username
-      ? `github.com/${username}/${projectName}${isCombo ? "/backend" : ""}`
-      : projectName;
+      ? `github.com/${username}/${effectiveProjectName}${isCombo ? "/backend" : ""}`
+      : effectiveProjectName;
 
     s.start(`Copying Go Fiber template...`);
     await fs.ensureDir(backendDest);
@@ -136,7 +137,7 @@ export async function scaffold(answers: Answers) {
     const pkgJsonPath = path.join(frontendDest, "package.json");
     if (await fs.pathExists(pkgJsonPath)) {
       const pkg = await fs.readJson(pkgJsonPath);
-      pkg.name = projectName;
+      pkg.name = effectiveProjectName;
       await fs.writeJson(pkgJsonPath, pkg, { spaces: 2 });
     }
     s.stop(`Next.js template files copied and configured`);
@@ -169,7 +170,7 @@ export async function scaffold(answers: Answers) {
     const pkgJsonPath = path.join(frontendDest, "package.json");
     if (await fs.pathExists(pkgJsonPath)) {
       const pkg = await fs.readJson(pkgJsonPath);
-      pkg.name = projectName;
+      pkg.name = effectiveProjectName;
       await fs.writeJson(pkgJsonPath, pkg, { spaces: 2 });
     }
     s.stop(`React Vite template files copied and configured`);
@@ -205,18 +206,20 @@ export async function scaffold(answers: Answers) {
 
   let nextSteps = "";
   if (isCombo) {
+    const bePath = isCurrentDir ? "backend" : `${projectName}/backend`;
+    const fePath = isCurrentDir ? "frontend" : `${projectName}/frontend`;
     nextSteps = `1. Backend (Go Fiber):
-   cd ${projectName}/backend
+   cd ${bePath}
    go run ./internal/scripts/auto_migrate.go
    go run ./cmd/main.go
 
 2. Frontend:
-   cd ${projectName}/frontend
+   cd ${fePath}
    pnpm install
    pnpm dev`;
   } else if (frontend === "nextjs-fullstack") {
-    nextSteps = `cd ${projectName}
-pnpm install
+    const cdCmd = isCurrentDir ? "" : `cd ${projectName}\n`;
+    nextSteps = `${cdCmd}pnpm install
 pnpm db:push
 pnpm db:seed
 pnpm dev
@@ -227,12 +230,12 @@ Database commands:
   pnpm db:studio   (open Drizzle visual database viewer)
   pnpm db:migrate  (apply migrations)`;
   } else if (backend === "go-fiber") {
-    nextSteps = `cd ${projectName}
-go run ./internal/scripts/auto_migrate.go
+    const cdCmd = isCurrentDir ? "" : `cd ${projectName}\n`;
+    nextSteps = `${cdCmd}go run ./internal/scripts/auto_migrate.go
 go run ./cmd/main.go`;
   } else if (frontend) {
-    nextSteps = `cd ${projectName}
-pnpm install
+    const cdCmd = isCurrentDir ? "" : `cd ${projectName}\n`;
+    nextSteps = `${cdCmd}pnpm install
 pnpm dev`;
   }
 
