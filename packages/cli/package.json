@@ -1,19 +1,42 @@
 {
   "name": "create-vy-project",
   "version": "0.1.0",
+  "description": "Fast scaffolding CLI for Next.js 16, React 19 Vite, and Go Fiber projects",
   "type": "module",
+  "main": "./dist/index.js",
   "bin": {
     "create-vy-project": "./dist/index.js"
   },
+  "files": [
+    "dist",
+    "templates",
+    "skills",
+    "README.md"
+  ],
   "scripts": {
     "dev": "npx tsx src/index.ts",
-    "build": "tsc"
+    "copy-assets": "node scripts/copy-assets.js",
+    "build": "tsc && node scripts/copy-assets.js",
+    "prepack": "npm run build"
+  },
+  "keywords": [
+    "create-vy-project",
+    "nextjs",
+    "react",
+    "vite",
+    "go-fiber",
+    "scaffold",
+    "cli"
+  ],
+  "author": "VYDev37",
+  "license": "MIT",
+  "publishConfig": {
+    "access": "public"
   },
   "dependencies": {
     "@clack/prompts": "latest",
     "execa": "latest",
-    "fs-extra": "latest",
-    "tsup": "^8.5.1"
+    "fs-extra": "latest"
   },
   "devDependencies": {
     "@types/fs-extra": "latest",

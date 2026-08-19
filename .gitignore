@@ -1,12 +1,15 @@
 # Dependencies
 node_modules/
 .pnpm-store/
+.npmrc
 
 # Build outputs
 dist/
 .next/
 out/
 build/
+packages/cli/templates/
+packages/cli/skills/
 
 # Local database files
 *.db

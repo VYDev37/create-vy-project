@@ -10,21 +10,27 @@ import { generateAgentsMd } from "./agents.js";
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
-function getMonorepoRoot(): string {
+function getResourceDirs(): { templatesDir: string; skillsDir: string } {
   const possibleRoots = [
-    path.resolve(__dirname, "../../.."),
-    path.resolve(__dirname, "../.."),
-    path.resolve(__dirname, ".."),
+    path.resolve(__dirname, ".."), // Inside packages/cli
+    path.resolve(__dirname, "../.."), // Inside packages/
+    path.resolve(__dirname, "../../.."), // Monorepo root
+    path.resolve(__dirname, "."),
     process.cwd(),
   ];
 
   for (const root of possibleRoots) {
-    if (fs.existsSync(path.join(root, "templates")) || fs.existsSync(path.join(root, "skills"))) {
-      return root;
+    const tDir = path.join(root, "templates");
+    const sDir = path.join(root, "skills");
+    if (fs.existsSync(tDir) && fs.existsSync(sDir)) {
+      return { templatesDir: tDir, skillsDir: sDir };
     }
   }
 
-  return process.cwd();
+  return {
+    templatesDir: path.resolve(__dirname, "../templates"),
+    skillsDir: path.resolve(__dirname, "../skills"),
+  };
 }
 
 /**
@@ -94,9 +100,7 @@ export async function scaffold(answers: Answers) {
   const { projectName, isCurrentDir, type, backend, frontend, username } = answers;
   const projectRoot = isCurrentDir ? process.cwd() : path.resolve(process.cwd(), projectName);
   const effectiveProjectName = projectName || path.basename(projectRoot);
-  const monorepoRoot = getMonorepoRoot();
-  const templatesDir = path.join(monorepoRoot, "templates");
-  const skillsDir = path.join(monorepoRoot, "skills");
+  const { templatesDir, skillsDir } = getResourceDirs();
 
   const s = spinner();
 
