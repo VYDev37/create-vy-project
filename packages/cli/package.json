@@ -1,6 +1,6 @@
 {
   "name": "create-vy-project",
-  "version": "0.1.1",
+  "version": "0.1.2",
   "description": "Fast scaffolding CLI for Next.js 16, React 19 Vite, and Go Fiber projects",
   "type": "module",
   "main": "./dist/index.js",
