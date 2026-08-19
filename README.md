@@ -10,6 +10,7 @@ The goal of this project is simple: eliminate repetitive setup work by providing
 
 - **Simple & Organized**: Clean folder structures, clear naming, and no unnecessary abstractions.
 - **Modern Stacks**: Next.js 16 (App Router), Go (Fiber v3), React 19 (Vite), and Tailwind CSS v4.
+- **Flexible Database Choice**: Choose between **SQLite** (embedded, zero-config local prototyping) or **PostgreSQL** (production-ready, Supabase, Neon, Docker) for both Next.js Fullstack and Go Fiber backends.
 - **Working Authentication**: Sensible auth setups with Argon2 password hashing, secure sessions, and HTTP-only cookies.
 - **Type-Safe Validation**: Schema-first forms and requests powered by Zod and React Hook Form.
 - **AI-Agent Ready**: Includes local `.agents/skills/` and `AGENTS.md` to help AI coding assistants follow project rules.
@@ -24,43 +25,51 @@ Run the interactive CLI to create a new project:
 # Using pnpm (recommended)
 pnpm dlx create-vy-project
 
-# Using npx
+# Using npm
 npx create-vy-project
 
 # Using bun
 bunx create-vy-project
 ```
 
+You can also scaffold directly into your current directory:
+```bash
+pnpm dlx create-vy-project .
+```
+
 ---
 
-## Available Templates
+## Available Templates & Database Options
 
-### 1. `nextjs-fullstack` (Next.js 16 Fullstack)
-A complete Next.js starter with SQLite database and local authentication:
+### 1. Next.js 16 Fullstack (`fullstack`)
+A complete Next.js starter with Drizzle ORM, local authentication, and selectable database:
 * **Framework**: Next.js 16 with React 19
-* **Database**: Drizzle ORM with LibSQL SQLite (runs locally without extra database setup)
+* **Database Options**:
+  - **SQLite**: Drizzle ORM with LibSQL (zero-config local embedded database)
+  - **PostgreSQL**: Drizzle ORM with Postgres.js (`postgres` driver)
 * **Auth**: Argon2id password hashing and Iron Session cookie storage
-* **Forms**: React Hook Form with Zod validation
 * **Commands**:
   - `pnpm dev`: Start the development server
   - `pnpm db:seed`: Create the default demo user
-  - `pnpm db:push`: Apply schema changes to the local database
+  - `pnpm db:push`: Apply schema changes to the database
   - `pnpm db:studio`: Open the visual database viewer
 
-### 2. `go-fiber` + `nextjs-frontend` (Backend + Frontend Combo)
+### 2. Go Fiber + Frontend Combo (`frontend+backend`)
 Separate backend and frontend folders for projects that need a Go API:
 * **Backend (`backend/`)**: Go Fiber v3 with GORM and cookie-based JWT authentication
-* **Frontend (`frontend/`)**: Client-only Next.js app with Axios and Zustand store
+  - **SQLite Option**: Pure Go SQLite driver (`github.com/glebarez/sqlite`, zero-CGO required)
+  - **PostgreSQL Option**: Standard GORM PostgreSQL driver (`gorm.io/driver/postgres`)
+* **Frontend (`frontend/`)**: Your choice of **Next.js 16 Client** or **React 19 Vite**
 * **Usage**:
   ```bash
   # 1. Run backend
-  cd backend && go run ./cmd/main.go
+  cd backend && go run ./internal/scripts/auto_migrate.go && go run ./cmd/main.go
 
   # 2. Run frontend
   cd frontend && pnpm install && pnpm dev
   ```
 
-### 3. `react-vite` (Client-Only SPA)
+### 3. React Vite SPA (`frontend`)
 A lightweight React single-page application:
 * **Framework**: React 19 with Vite 6 and TypeScript
 * **Styling**: Tailwind CSS v4 and shadcn UI components
@@ -84,18 +93,14 @@ export const UserSchema = z.object({
   username: z.string().min(3),
   name: z.string().min(2),
   email: z.string().email(),
-  role: z.enum(["USER", "ADMIN", "DEVELOPER"]),
+  role: z.number().int().default(1),
 });
 
 export type User = z.infer<typeof UserSchema>;
 ```
 
-### 3. Database Layer in `db/`
-For the fullstack template, database logic is kept inside `db/`:
-* `db/schema.ts`: Table definitions and columns
-* `db/database.ts`: Connection client
-* `db/seed.ts`: Script to seed initial data
-* `db/index.ts`: Main database export
+### 3. Numeric Role Levels
+Roles use integer levels (`1` for standard users, `2` for administrators) for lightweight permission checking across all layers.
 
 ---
 

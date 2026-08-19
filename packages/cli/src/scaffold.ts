@@ -48,6 +48,7 @@ async function replaceGoModulePaths(dir: string, moduleName: string) {
     } else if (file.endsWith(".go") || file === "go.mod") {
       let content = await fs.readFile(fullPath, "utf-8");
       content = content.replaceAll("go-fiber-template", moduleName);
+      content = content.replaceAll("go-fiber-sqlite", moduleName);
       content = content.replaceAll("go-fiber", moduleName);
       await fs.writeFile(fullPath, content, "utf-8");
     }
@@ -97,9 +98,9 @@ function getRunCmd(pkg: PackageManager, script: string): string {
 }
 
 export async function scaffold(answers: Answers) {
-  const { projectName, isCurrentDir, type, backend, frontend, username } = answers;
+  const { projectName, isCurrentDir, type, backend, frontend, database, username } = answers;
   const projectRoot = isCurrentDir ? process.cwd() : path.resolve(process.cwd(), projectName);
-  const effectiveProjectName = projectName || path.basename(projectRoot);
+  const effectiveProjectName = path.basename(projectRoot);
   const { templatesDir, skillsDir } = getResourceDirs();
 
   const s = spinner();
@@ -114,12 +115,13 @@ export async function scaffold(answers: Answers) {
   if (backend === "go-fiber") {
     selectedStacks.push("go-fiber");
     const backendDest = isCombo ? path.join(projectRoot, "backend") : projectRoot;
-    const templateSrc = path.join(templatesDir, "go-fiber");
+    const templateFolder = database === "sqlite" ? "go-fiber-sqlite" : "go-fiber";
+    const templateSrc = path.join(templatesDir, templateFolder);
     const goModuleName = username
       ? `github.com/${username}/${effectiveProjectName}${isCombo ? "/backend" : ""}`
       : effectiveProjectName;
 
-    s.start(`Copying Go Fiber template...`);
+    s.start(`Copying Go Fiber template (${database === "sqlite" ? "SQLite" : "PostgreSQL"})...`);
     await fs.ensureDir(backendDest);
     await fs.copy(templateSrc, backendDest, {
       filter: (src) => {
@@ -151,12 +153,13 @@ export async function scaffold(answers: Answers) {
   }
 
   // 3. Handle Frontend
-  if (frontend === "nextjs-fullstack" || frontend === "nextjs-frontend") {
-    selectedStacks.push(frontend);
+  if (frontend === "nextjs-fullstack") {
+    selectedStacks.push("nextjs-fullstack");
     const frontendDest = isCombo ? path.join(projectRoot, "frontend") : projectRoot;
-    const templateSrc = path.join(templatesDir, frontend);
+    const templateFolder = database === "postgres" ? "nextjs-fullstack-psql" : "nextjs-fullstack";
+    const templateSrc = path.join(templatesDir, templateFolder);
 
-    s.start(`Copying Next.js template (${frontend})...`);
+    s.start(`Copying Next.js Fullstack template (${database === "postgres" ? "PostgreSQL" : "SQLite"})...`);
     await fs.ensureDir(frontendDest);
     await fs.copy(templateSrc, frontendDest, {
       filter: (src) => {
@@ -186,7 +189,43 @@ export async function scaffold(answers: Answers) {
       pkg.name = effectiveProjectName;
       await fs.writeJson(pkgJsonPath, pkg, { spaces: 2 });
     }
-    s.stop(`Next.js template files copied and configured`);
+    s.stop(`Next.js Fullstack template files copied and configured`);
+  } else if (frontend === "nextjs-frontend") {
+    selectedStacks.push("nextjs-frontend");
+    const frontendDest = isCombo ? path.join(projectRoot, "frontend") : projectRoot;
+    const templateSrc = path.join(templatesDir, "nextjs-frontend");
+
+    s.start(`Copying Next.js Frontend template...`);
+    await fs.ensureDir(frontendDest);
+    await fs.copy(templateSrc, frontendDest, {
+      filter: (src) => {
+        const basename = path.basename(src);
+        return (
+          basename !== "node_modules" &&
+          basename !== ".next" &&
+          basename !== "dist" &&
+          basename !== "pnpm-lock.yaml" &&
+          !basename.endsWith(".db") &&
+          !basename.endsWith(".db-journal")
+        );
+      },
+    });
+
+    // Create .env from .env.example
+    const envExamplePath = path.join(frontendDest, ".env.example");
+    const envPath = path.join(frontendDest, ".env");
+    if ((await fs.pathExists(envExamplePath)) && !(await fs.pathExists(envPath))) {
+      await fs.copy(envExamplePath, envPath);
+    }
+
+    // Update package.json name
+    const pkgJsonPath = path.join(frontendDest, "package.json");
+    if (await fs.pathExists(pkgJsonPath)) {
+      const pkg = await fs.readJson(pkgJsonPath);
+      pkg.name = effectiveProjectName;
+      await fs.writeJson(pkgJsonPath, pkg, { spaces: 2 });
+    }
+    s.stop(`Next.js Frontend template files copied and configured`);
   } else if (frontend === "react-vite") {
     selectedStacks.push("react-vite");
     const frontendDest = isCombo ? path.join(projectRoot, "frontend") : projectRoot;
@@ -258,7 +297,8 @@ export async function scaffold(answers: Answers) {
   if (isCombo) {
     const bePath = isCurrentDir ? "backend" : `${projectName}/backend`;
     const fePath = isCurrentDir ? "frontend" : `${projectName}/frontend`;
-    nextSteps = `1. Backend (Go Fiber):
+    const dbLabel = database === "sqlite" ? "SQLite" : "PostgreSQL";
+    nextSteps = `1. Backend (Go Fiber + ${dbLabel}):
    cd ${bePath}
    go run ./internal/scripts/auto_migrate.go
    go run ./cmd/main.go
@@ -269,13 +309,14 @@ export async function scaffold(answers: Answers) {
    ${devCmd}`;
   } else if (frontend === "nextjs-fullstack") {
     const cdCmd = isCurrentDir ? "" : `cd ${projectName}\n`;
+    const dbLabel = database === "postgres" ? "PostgreSQL" : "local SQLite";
     nextSteps = `${cdCmd}${installCmd}
 ${getRunCmd(pkgManager, "db:push")}
 ${getRunCmd(pkgManager, "db:seed")}
 ${devCmd}
 
 Database commands:
-  ${getRunCmd(pkgManager, "db:push")}     (sync schema changes to local SQLite)
+  ${getRunCmd(pkgManager, "db:push")}     (sync schema changes to ${dbLabel})
   ${getRunCmd(pkgManager, "db:seed")}     (seed default demo account)
   ${getRunCmd(pkgManager, "db:studio")}   (open Drizzle visual database viewer)
   ${getRunCmd(pkgManager, "db:migrate")}  (apply migrations)`;

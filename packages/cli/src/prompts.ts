@@ -7,6 +7,7 @@ export type Answers = {
   type: "fullstack" | "frontend+backend" | "frontend" | "backend";
   frontend?: "nextjs-fullstack" | "nextjs-frontend" | "react-vite";
   backend?: "go-fiber" | "laravel";
+  database?: "sqlite" | "postgres";
   username?: string;
 };
 
@@ -82,11 +83,34 @@ export async function runPrompts(targetArg?: string): Promise<Answers> {
 
   let frontend: Answers["frontend"];
   let backend: Answers["backend"];
+  let database: Answers["database"];
   let username: string | undefined;
 
   // 3. Frontend selection
   if (type === "fullstack") {
     frontend = "nextjs-fullstack";
+
+    const dbChoice = await select({
+      message: "Select database for Next.js Fullstack:",
+      options: [
+        {
+          value: "sqlite",
+          label: "SQLite (LibSQL / Drizzle)",
+          hint: "Zero-config embedded local database",
+        },
+        {
+          value: "postgres",
+          label: "PostgreSQL (Postgres.js / Drizzle)",
+          hint: "Production-ready (Supabase, Neon, Docker)",
+        },
+      ],
+    });
+
+    if (isCancel(dbChoice)) {
+      cancel("Operation cancelled.");
+      process.exit(0);
+    }
+    database = dbChoice as "sqlite" | "postgres";
   } else if (type === "frontend" || type === "frontend+backend") {
     const frontendChoice = await select({
       message: "Select frontend framework:",
@@ -119,7 +143,7 @@ export async function runPrompts(targetArg?: string): Promise<Answers> {
         {
           value: "go-fiber",
           label: "Go Fiber v3",
-          hint: "Go Fiber v3, GORM, PostgreSQL, JWT Auth",
+          hint: "Go Fiber v3, GORM, JWT Auth",
         },
       ],
     });
@@ -130,7 +154,30 @@ export async function runPrompts(targetArg?: string): Promise<Answers> {
     }
     backend = backendChoice as Answers["backend"];
 
-    // 5. Username (for Go module name)
+    // 5. Database selection for Go Fiber
+    const dbChoice = await select({
+      message: "Select database for Go Fiber backend:",
+      options: [
+        {
+          value: "sqlite",
+          label: "SQLite (Pure Go / Zero-CGO)",
+          hint: "Zero-config embedded local database",
+        },
+        {
+          value: "postgres",
+          label: "PostgreSQL (GORM Postgres)",
+          hint: "Production-ready (Supabase, Neon, Docker)",
+        },
+      ],
+    });
+
+    if (isCancel(dbChoice)) {
+      cancel("Operation cancelled.");
+      process.exit(0);
+    }
+    database = dbChoice as "sqlite" | "postgres";
+
+    // 6. Username (for Go module name)
     if (backend === "go-fiber") {
       const usernameInput = await text({
         message: "GitHub / organization username (for Go module path):",
@@ -156,6 +203,7 @@ export async function runPrompts(targetArg?: string): Promise<Answers> {
     type: type as Answers["type"],
     frontend,
     backend,
+    database,
     username,
   };
 }
