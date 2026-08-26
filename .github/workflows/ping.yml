@@ -1,0 +1,27 @@
+name: Market-Worker
+on:
+  schedule:
+    - cron: '0 * * * *' # ping database every 1 hour
+jobs:
+  ping-database:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Ping PostgreSQL Database
+        env:
+          DATABASE_URL: ${{ secrets.DATABASE_URL }}
+        run: |
+          pip install psycopg2-binary -q
+          python - <<'EOF'
+          import psycopg2
+          import os
+
+          try:
+              conn = psycopg2.connect(os.environ["DATABASE_URL"])
+              cur = conn.cursor()
+              cur.execute("SELECT 1")
+              print("✅ Database OK:", cur.fetchone())
+              conn.close()
+          except Exception as e:
+              print("❌ Error:", e)
+              exit(1)
+          EOF
