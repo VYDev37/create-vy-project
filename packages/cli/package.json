@@ -43,5 +43,9 @@
     "@types/node": "latest",
     "tsx": "latest",
     "typescript": "latest"
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/VYDev37/create-vy-project"
   }
 }
