@@ -80,10 +80,10 @@ A lightweight React single-page application:
 
 ## Project Conventions
 
-### 1. PascalCase File Naming
-Custom components, schemas, stores, and pages use `PascalCase`:
-* Examples: `Navbar.tsx`, `HeroSection.tsx`, `LoginForm.tsx`, `UserSchema.ts`, `AuthStore.ts`
-* Exception: Generic UI primitives in `@/components/ui/` keep standard shadcn `kebab-case` (`button.tsx`, `dialog.tsx`).
+### 1. File Naming Conventions
+* **React & Frontend (PascalCase):** Custom components, schemas, stores, and pages use `PascalCase` (`Navbar.tsx`, `HeroSection.tsx`, `LoginForm.tsx`, `UserSchema.ts`, `AuthStore.ts`).
+  * Exception: Generic UI primitives in `@/components/ui/` keep standard shadcn `kebab-case` (`button.tsx`, `dialog.tsx`).
+* **Golang Backend (lowercase & snake_case):** All Golang files (`.go`) strictly use `lowercase` and `snake_case` (`user_handler.go`, `user_repository.go`, `user_service.go`, `auto_migrate.go`, `read_env.go`, `main.go`). Never use PascalCase or camelCase for Go files.
 
 ### 2. Zod as Single Source of Truth
 Types are inferred directly from Zod schemas instead of maintaining separate TypeScript interfaces:
