@@ -37,6 +37,17 @@ You can also scaffold directly into your current directory:
 pnpm dlx create-vy-project .
 ```
 
+### Updating Existing Projects
+Update instructions (`AGENTS.md`, `CLAUDE.md`) and `.agents/skills/` in an existing project to the latest standards without modifying application source code:
+
+```bash
+# In your project root
+npx create-vy-project update
+
+# Or specify a target directory
+npx create-vy-project update ./my-app
+```
+
 ---
 
 ## Available Templates & Database Options

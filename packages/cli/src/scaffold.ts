@@ -10,7 +10,7 @@ import { generateAgentsMd } from "./agents.js";
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
-function getResourceDirs(): { templatesDir: string; skillsDir: string } {
+export function getResourceDirs(): { templatesDir: string; skillsDir: string } {
   const possibleRoots = [
     path.resolve(__dirname, ".."), // Inside packages/cli
     path.resolve(__dirname, "../.."), // Inside packages/

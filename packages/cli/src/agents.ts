@@ -9,7 +9,7 @@ export function generateAgentsMd(stacks: string[]): string {
 
   if (hasGo) {
     skillGuidelines.push(
-      "- **Go Fiber Conventions & Architecture:** Read `.agents/skills/backend/go-fiber-convention.md` for layer separation, Fiber v3 handlers, and response shapes.",
+      "- **Go Fiber Architecture & Conventions:** Read `.agents/skills/backend/go-fiber-convention.md` for layer separation, Fiber v3 handlers, and response shapes.",
       "- **GORM Database Patterns:** Read `.agents/skills/backend/gorm-patterns.md` for database models, migrations, and repositories.",
       "- **JWT Authentication:** Read `.agents/skills/backend/jwt-auth.md` for cookie-based authentication, token validation, and password hashing.",
       "- **Golang Best Practices:** Consult the specialized Go skills in `.agents/skills/` (`golang-code-style`, `golang-naming`, `golang-error-handling`, `golang-security`, `golang-database`)."
@@ -30,7 +30,7 @@ export function generateAgentsMd(stacks: string[]): string {
   const namingItems: string[] = [];
   if (hasGo) {
     namingItems.push(
-      "- **Golang Files (Strict Lowercase & snake_case):** Khusus semua file Golang (`.go`), semua nama file **WAJIB** menggunakan **`lowercase`** dan format **`snake_case`** (contoh: `user_handler.go`, `user_repository.go`, `user_service.go`, `auto_migrate.go`, `read_env.go`, `auth.go`, `main.go`). DILARANG KERAS menggunakan PascalCase (e.g., `UserHandler.go`), camelCase (e.g., `userHandler.go`), atau kebab-case untuk nama file Go. Direktori Go juga wajib lowercase (`cmd/`, `internal/handlers/`, dll.)."
+      "- **Golang Files (Strict Lowercase & snake_case):** Specifically for all Golang source files (`.go`), file names **MUST** use **`lowercase`** and **`snake_case`** format (e.g., `user_handler.go`, `user_repository.go`, `user_service.go`, `auto_migrate.go`, `read_env.go`, `auth.go`, `main.go`). NEVER use PascalCase (e.g., `UserHandler.go`), camelCase (e.g., `userHandler.go`), or kebab-case for any Go file names. All Go directories MUST also use lowercase (`cmd/`, `internal/handlers/`, etc.)."
     );
   }
   if (hasFrontend || !hasGo) {
@@ -46,47 +46,109 @@ export function generateAgentsMd(stacks: string[]): string {
 
   // Section 2: Go Architecture (if Go present)
   if (hasGo) {
-    sections.push(`### 2. Go Fiber Architecture & Layering Rules
-- **\`cmd/main.go\`:** Entry point for loading configuration, database connection, Fiber v3 setup, and mounting routes.
-- **\`internal/models/\`:** Pure GORM struct models representing database tables and JSON/GORM tags.
-- **\`internal/repositories/\`:** Data access layer executing database queries with \`*gorm.DB\`.
-- **\`internal/services/\`:** Pure business logic layer. Receives repositories via interface.
-- **\`internal/handlers/\`:** Fiber HTTP handlers parsing input (\`c.Bind().Body()\`), validating, and returning standardized JSON responses.
-- **\`internal/middlewares/\`:** Fiber middlewares (CORS, JWT auth, logging).
-- **\`internal/routes/\`:** Dependency injection wiring and HTTP route definitions.
-- **Standard JSON Response Shape:**
-  \`\`\`json
-  {
-    "success": true,
-    "message": "Human readable message",
-    "data": {}
-  }
-  \`\`\`
-  In error cases:
-  \`\`\`json
-  {
-    "success": false,
-    "message": "Error details",
-    "data": null
-  }
-  \`\`\``);
+    sections.push(`### 2. Go Fiber Architecture & Layer Responsibilities
+This backend stack is built with **Go (Golang) 1.23+**, **Fiber v3**, **GORM**, and **JWT + Argon2id**. Each directory has strictly isolated architectural responsibilities:
+
+- **\`internal/repositories/\` (Direct Database Access Layer):**
+  - **ALL** logic interacting directly with the database (\`*gorm.DB\`) **MUST** reside exclusively in this layer.
+  - Prohibited from executing database queries directly inside services or handlers.
+  - File naming: \`snake_case.go\` (e.g., \`user_repository.go\`).
+  - Struct naming: Interface \`[Domain]Repository\`, struct \`[domain]Repository{ db *gorm.DB }\`, constructor \`New[Domain]Repository(db *gorm.DB)\`.
+
+- **\`internal/services/\` (Business Logic Layer):**
+  - Handles pure business logic, domain validation, password hashing (Argon2), JWT token generation, and orchestration between repositories.
+  - File naming: \`snake_case.go\` (e.g., \`user_service.go\`).
+  - Struct naming: Interface \`[Domain]Service\`, struct \`[domain]Service{ ... }\`, constructor \`New[Domain]Service(...)\`.
+
+- **\`internal/handlers/\` (REST API Handlers):**
+  - Dedicated to Fiber v3 HTTP handler functions. Responsible for parsing request payloads (\`c.Bind().Body(&req)\`), determining HTTP status codes, and formatting JSON responses.
+  - No database queries or heavy business logic permitted here.
+  - File naming: \`snake_case.go\` (e.g., \`user_handler.go\`).
+  - Struct naming: Struct \`[Domain]Handler\`, constructor \`New[Domain]Handler(svc ...)\`, receiver methods \`func (h *[Domain]Handler) Action(c fiber.Ctx) error\`.
+
+- **\`internal/routes/\` (Route Registration & Accessible Route Mapping):**
+  - Registers handler functions into accessible HTTP routes (\`app.Group\`, \`api.Post\`, \`api.Get\`).
+  - Handles dependency injection wiring (\`db\` -> \`repo\` -> \`service\` -> \`handler\`) and attaches route authentication middlewares.
+  - File naming: \`routes.go\`, function: \`func SetupRoutes(app *fiber.App, cfg *config.Config, db *gorm.DB)\`.
+
+- **\`internal/middlewares/\` (HTTP Middlewares):**
+  - Fiber middlewares (JWT authentication guard, CORS, logging, rate limiting).
+  - File naming: \`snake_case.go\` (e.g., \`auth.go\`, \`cors.go\`), function: \`PascalCase(...) fiber.Handler\`.
+
+- **\`internal/pkg/\` (Utility Functions):**
+  - Collection of domain-agnostic, reusable utility and helper functions (e.g., \`argon2.go\`, \`read_env.go\`).
+  - File naming: \`snake_case.go\`.
+
+- **\`internal/scripts/\` (Standalone Utility Scripts):**
+  - Standalone utility scripts such as database schema auto-migrations (\`auto_migrate.go\`).
+  - File naming: \`snake_case.go\`.
+
+- **\`internal/models/\` (Database Table Definitions):**
+  - Struct model definitions representing GORM database tables along with JSON and GORM tags.
+  - File naming: \`snake_case.go\` (e.g., \`user.go\`), struct: \`PascalCase\` (\`type User struct\`).
+
+- **\`cmd/main.go\` (Entry Point):**
+  - Application entry point for configuration loading, database connection initialization, Fiber app setup, and calling \`routes.SetupRoutes\`.
+
+### 3. Protected Files: Database & Config (DO NOT MODIFY)
+> [!IMPORTANT]
+> The files \`internal/database/database.go\` and \`internal/config/config.go\` **MUST NOT BE MODIFIED** unless new environment variables or database connection configurations need to be explicitly added or changed.
+
+### 4. Struct-Based Pattern (MUST Use Structs, NOT Global Variables / Loose Functions)
+- **Dependency Injection via Structs:** All repositories, services, and handlers **MUST** be implemented as methods on a **\`struct\`** with constructor functions \`New...()\`.
+- **NEVER use global variables or package-level mutable state:** Do not store database instances (\`*gorm.DB\`), authentication state, or dependencies in global variables. All dependencies must be injected via struct fields during initialization in \`routes.SetupRoutes\`.
+- **Method Receivers:**
+  - Repositories: \`func (r *userRepository) FindByID(id uint) (*models.User, error)\`
+  - Services: \`func (s *userService) Register(req RegisterRequest) (*AuthResponse, error)\`
+  - Handlers: \`func (h *UserHandler) Register(c fiber.Ctx) error\`
+
+### 5. Naming Conventions per Layer
+| Layer | Folder Location | File Naming Convention | Struct / Interface Convention | Constructor / Function |
+|---|---|---|---|---|
+| **Models** | \`internal/models/\` | \`snake_case.go\` (\`user.go\`) | \`PascalCase\` (\`type User struct\`) | - |
+| **Repositories** | \`internal/repositories/\` | \`[domain]_repository.go\` | Interface: \`[Domain]Repository\`<br>Struct: \`[domain]Repository\` | \`New[Domain]Repository(db *gorm.DB)\` |
+| **Services** | \`internal/services/\` | \`[domain]_service.go\` | Interface: \`[Domain]Service\`<br>Struct: \`[domain]Service\` | \`New[Domain]Service(repo ...)\` |
+| **Handlers** | \`internal/handlers/\` | \`[domain]_handler.go\` | Struct: \`[Domain]Handler\` | \`New[Domain]Handler(svc ...)\` |
+| **Middlewares** | \`internal/middlewares/\` | \`snake_case.go\` (\`auth.go\`) | - | \`PascalCase(...) fiber.Handler\` |
+| **Routes** | \`internal/routes/\` | \`routes.go\` | - | \`SetupRoutes(app, cfg, db)\` |
+| **Utilities** | \`internal/pkg/\` | \`snake_case.go\` (\`argon2.go\`) | Helper structs if needed | \`PascalCase\` functions |
+| **Scripts** | \`internal/scripts/\` | \`snake_case.go\` (\`auto_migrate.go\`) | - | \`main()\` |
+
+### 6. Standard JSON Response Shape
+All HTTP handlers must return responses matching the standard format:
+\`\`\`json
+{
+  "success": true,
+  "message": "Human readable message",
+  "data": {}
+}
+\`\`\`
+In error cases:
+\`\`\`json
+{
+  "success": false,
+  "message": "Error details",
+  "data": null
+}
+\`\`\``);
   }
 
-  // Section 3: Frontend Directives (if Frontend present)
+  // Frontend Directives (if Frontend present)
   if (hasFrontend) {
-    sections.push(`### ${hasGo ? "3" : "2"}. Server Component Priority, Colocation & File Size Limit
+    const feIndex = hasGo ? 7 : 2;
+    sections.push(`### ${feIndex}. Server Component Priority, Colocation & File Size Limit
 - **Server Component First (\`page.tsx\`):** All Next.js pages MUST be Server Components for SSR, server-side route guards (\`redirect("/login")\`), and explicit \`Metadata\`.
 - **Colocated Client Components (\`[Feature]Client.tsx\`):** Place interactive client wrappers directly in the route folder alongside \`page.tsx\` (e.g., \`app/(dashboard)/dashboard/DashboardClient.tsx\`).
 - **Route-Level \`loading.tsx\`:** Place dedicated loading skeletons in route folders instead of messy \`if (isLoading)\` state branches in components.
 - **Strict File Length Limit (< 200 Lines):** Keep all files concise and modular under 200 lines. Extract subcomponents into dedicated files.
 
-### ${hasGo ? "4" : "3"}. Type Safety & Single Source of Truth (Zod Rule)
+### ${feIndex + 1}. Type Safety & Single Source of Truth (Zod Rule)
 - **Zero Arbitrary Types:** Never create loose, unvalidated TypeScript interfaces for core domain entities.
 - **Schema-First Inference:** Always define runtime Zod schemas in \`schemas/\` and infer types using \`export type User = z.infer<typeof UserSchema>;\`.`);
   }
 
   // Final Section: UI/UX Craft & Anti-Slop
-  const craftNumber = hasGo && hasFrontend ? 5 : hasGo || hasFrontend ? 3 : 2;
+  const craftNumber = hasGo && hasFrontend ? 9 : hasGo ? 7 : 4;
   sections.push(`### ${craftNumber}. UI/UX Craft & Anti-Slop Principles
 - **No Em-Dashes (\`—\`):** Never use em-dashes in user-facing copy or labels.
 - **No AI Buzzwords:** Keep copy simple, natural, and humble. Avoid words like "delve", "testament", "unleash", "elevate", "cutting-edge", "game-changer", "tapestry", "seamlessly", "enterprise-grade".
