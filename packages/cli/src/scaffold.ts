@@ -55,6 +55,17 @@ async function replaceGoModulePaths(dir: string, moduleName: string) {
   }
 }
 
+/**
+ * Ensures .gitignore exists, renaming .npmignore if npm pack/publish renamed it.
+ */
+async function ensureGitignore(destDir: string) {
+  const npmignorePath = path.join(destDir, ".npmignore");
+  const gitignorePath = path.join(destDir, ".gitignore");
+  if ((await fs.pathExists(npmignorePath)) && !(await fs.pathExists(gitignorePath))) {
+    await fs.rename(npmignorePath, gitignorePath);
+  }
+}
+
 export type PackageManager = "pnpm" | "npm" | "yarn" | "bun";
 
 export function getPackageManager(): PackageManager {
@@ -139,6 +150,7 @@ export async function scaffold(answers: Answers) {
 
     // Replace module name in go.mod and .go files
     await replaceGoModulePaths(backendDest, goModuleName);
+    await ensureGitignore(backendDest);
     s.stop(`Go Fiber template files copied and module name updated`);
 
     // Run go mod tidy to sync dependencies with the updated module name
@@ -189,6 +201,7 @@ export async function scaffold(answers: Answers) {
       pkg.name = effectiveProjectName;
       await fs.writeJson(pkgJsonPath, pkg, { spaces: 2 });
     }
+    await ensureGitignore(frontendDest);
     s.stop(`Next.js Fullstack template files copied and configured`);
   } else if (frontend === "nextjs-frontend") {
     selectedStacks.push("nextjs-frontend");
@@ -211,20 +224,19 @@ export async function scaffold(answers: Answers) {
       },
     });
 
-    // Create .env from .env.example
     const envExamplePath = path.join(frontendDest, ".env.example");
     const envPath = path.join(frontendDest, ".env");
     if ((await fs.pathExists(envExamplePath)) && !(await fs.pathExists(envPath))) {
       await fs.copy(envExamplePath, envPath);
     }
 
-    // Update package.json name
     const pkgJsonPath = path.join(frontendDest, "package.json");
     if (await fs.pathExists(pkgJsonPath)) {
       const pkg = await fs.readJson(pkgJsonPath);
       pkg.name = effectiveProjectName;
       await fs.writeJson(pkgJsonPath, pkg, { spaces: 2 });
     }
+    await ensureGitignore(frontendDest);
     s.stop(`Next.js Frontend template files copied and configured`);
   } else if (frontend === "react-vite") {
     selectedStacks.push("react-vite");
@@ -244,21 +256,31 @@ export async function scaffold(answers: Answers) {
       },
     });
 
-    // Create .env from .env.example
     const envExamplePath = path.join(frontendDest, ".env.example");
     const envPath = path.join(frontendDest, ".env");
     if ((await fs.pathExists(envExamplePath)) && !(await fs.pathExists(envPath))) {
       await fs.copy(envExamplePath, envPath);
     }
 
-    // Update package.json name
     const pkgJsonPath = path.join(frontendDest, "package.json");
     if (await fs.pathExists(pkgJsonPath)) {
       const pkg = await fs.readJson(pkgJsonPath);
       pkg.name = effectiveProjectName;
       await fs.writeJson(pkgJsonPath, pkg, { spaces: 2 });
     }
+    await ensureGitignore(frontendDest);
     s.stop(`React Vite template files copied and configured`);
+  }
+
+  if (isCombo) {
+    const rootGitignore = path.join(projectRoot, ".gitignore");
+    if (!(await fs.pathExists(rootGitignore))) {
+      await fs.writeFile(
+        rootGitignore,
+        `# Dependencies\nnode_modules/\n\n# Build outputs & caches\ndist/\n.next/\n\n# Local databases\n*.db\n*.db-journal\n*.db-wal\n*.db-shm\nsqlite.db\n\n# Environment\n.env\n.env*.local\n\n# OS & IDEs\n.DS_Store\nThumbs.db\n.idea/\n.vscode/\n`,
+        "utf-8"
+      );
+    }
   }
 
   // 4. Create .agents/skills/ folder & copy relevant skills
