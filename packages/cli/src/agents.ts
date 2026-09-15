@@ -1,7 +1,10 @@
 export function generateAgentsMd(stacks: string[]): string {
   const stackList = stacks.map((s) => `- \`${s}\``).join("\n");
   const hasGo = stacks.includes("go-fiber");
-  const hasFrontend = stacks.some((s) => s.startsWith("nextjs") || s === "react-vite");
+  const hasNextjs = stacks.some((s) => s.startsWith("nextjs"));
+  const isReactVite = stacks.includes("react-vite");
+  const hasFrontend = hasNextjs || isReactVite;
+  const hasLaravel = stacks.includes("laravel");
 
   const skillGuidelines: string[] = [
     "- **General & Anti-Slop:** Read `.agents/skills/general/stop-slop.md` for clean, human, humble writing without AI buzzwords or em-dashes.",
@@ -16,15 +19,32 @@ export function generateAgentsMd(stacks: string[]): string {
     );
   }
 
-  if (hasFrontend) {
+  if (hasLaravel) {
+    skillGuidelines.push(
+      "- **Laravel Architecture & Conventions:** Read `.agents/skills/backend/laravel-convention.md` for modern Laravel best practices and standard structures."
+    );
+  }
+
+  if (hasNextjs) {
     skillGuidelines.push(
       "- **Next.js & Frontend Conventions:** Read `.agents/skills/frontend/nextjs-conventions.md` for Server Component first rules, colocated client components, and PascalCase.",
       "- **State Management:** Read `.agents/skills/frontend/react-state-management.md` for Zustand atomic selectors and `UserProvider` context.",
-      "- **Frontend UI Quality:** Read `.agents/skills/frontend/frontend-developer.md` for accessible, modular component architecture."
+      "- **Frontend UI Quality:** Read `.agents/skills/frontend/frontend-developer.md` for accessible, modular component architecture.",
+      "- **UI/UX Craft & Design:** Consult `.agents/skills/frontend/ui-ux-pro-max.md` and `.agents/skills/frontend/taste-skill.md`."
+    );
+  }
+
+  if (isReactVite) {
+    skillGuidelines.push(
+      "- **React Patterns & Vite Architecture:** Read `.agents/skills/frontend/react-patterns.md` and `.agents/skills/frontend/frontend-developer.md` for Vite client SPA architecture, hooks, and modular components.",
+      "- **State Management:** Read `.agents/skills/frontend/react-state-management.md` or `.agents/skills/zustand-store-ts/` for Zustand atomic selectors and client stores.",
+      "- **UI/UX Design Intelligence:** Consult `.agents/skills/frontend/ui-ux-pro-max.md` and `.agents/skills/frontend/taste-skill.md`.",
+      "- **Client API Integration:** Use `src/lib/ApiClient.ts` (Axios instance configured with `baseURL: import.meta.env.VITE_API_URL` and `withCredentials: true`)."
     );
   }
 
   const sections: string[] = [];
+  let sectionIndex = 1;
 
   // Section 1: Naming Conventions
   const namingItems: string[] = [];
@@ -35,18 +55,41 @@ export function generateAgentsMd(stacks: string[]): string {
   }
   if (hasFrontend || !hasGo) {
     namingItems.push(
-      "- **PascalCase by Default (Frontend & React):** All custom React components, layouts, sections, schemas, stores, and frontend providers MUST be named in **`PascalCase`** (e.g., `Navbar.tsx`, `HeroSection.tsx`, `LoginForm.tsx`, `UserSchema.ts`, `AuthStore.ts`, `UserProvider.tsx`).",
-      "- **Database Layer:** All Drizzle ORM schemas live in the `db/` directory. For Go Fiber, GORM models and repositories live in `internal/models/` and `internal/repositories/`.",
-      "- **UI Primitives Exception:** Files located inside `components/ui/` follow standard shadcn `kebab-case` conventions (e.g., `button.tsx`, `dropdown-menu.tsx`, `skeleton.tsx`, `sheet.tsx`).",
-      "- **Next.js App Router Special Files:** Routing convention files retain Next.js standards (`page.tsx`, `layout.tsx`, `loading.tsx`, `error.tsx`, `route.ts`)."
+      "- **PascalCase by Default (Frontend & React):** All custom React components, layouts, sections, schemas, stores, and frontend providers MUST be named in **`PascalCase`** (e.g., `Navbar.tsx`, `HeroSection.tsx`, `LoginForm.tsx`, `UserSchema.ts`, `AuthStore.ts`, `UserProvider.tsx`)."
     );
+
+    if (stacks.includes("nextjs-fullstack")) {
+      namingItems.push(
+        "- **Database Layer:** All Drizzle ORM schemas live in the `db/` directory."
+      );
+    } else if (hasGo) {
+      namingItems.push(
+        "- **Database Layer:** For Go Fiber, GORM models and repositories live in `internal/models/` and `internal/repositories/`."
+      );
+    }
+
+    if (isReactVite) {
+      namingItems.push(
+        "- **UI Primitives Exception:** Files located inside `src/components/ui/` follow standard shadcn `kebab-case` conventions (e.g., `button.tsx`, `dropdown-menu.tsx`, `skeleton.tsx`, `sheet.tsx`)."
+      );
+    } else {
+      namingItems.push(
+        "- **UI Primitives Exception:** Files located inside `components/ui/` follow standard shadcn `kebab-case` conventions (e.g., `button.tsx`, `dropdown-menu.tsx`, `skeleton.tsx`, `sheet.tsx`)."
+      );
+    }
+
+    if (hasNextjs) {
+      namingItems.push(
+        "- **Next.js App Router Special Files:** Routing convention files retain Next.js standards (`page.tsx`, `layout.tsx`, `loading.tsx`, `error.tsx`, `route.ts`)."
+      );
+    }
   }
 
-  sections.push(`### 1. File & Component Naming Conventions\n${namingItems.join("\n")}`);
+  sections.push(`### ${sectionIndex++}. File & Component Naming Conventions\n${namingItems.join("\n")}`);
 
-  // Section 2: Go Architecture (if Go present)
+  // Section: Go Architecture (if Go present)
   if (hasGo) {
-    sections.push(`### 2. Go Fiber Architecture & Layer Responsibilities
+    sections.push(`### ${sectionIndex++}. Go Fiber Architecture & Layer Responsibilities
 This backend stack is built with **Go (Golang) 1.23+**, **Fiber v3**, **GORM**, and **JWT + Argon2id**. Each directory has strictly isolated architectural responsibilities:
 
 - **\`internal/repositories/\` (Direct Database Access Layer):**
@@ -90,11 +133,11 @@ This backend stack is built with **Go (Golang) 1.23+**, **Fiber v3**, **GORM**, 
 - **\`cmd/main.go\` (Entry Point):**
   - Application entry point for configuration loading, database connection initialization, Fiber app setup, and calling \`routes.SetupRoutes\`.
 
-### 3. Protected Files: Database & Config (DO NOT MODIFY)
+### ${sectionIndex++}. Protected Files: Database & Config (DO NOT MODIFY)
 > [!IMPORTANT]
 > The files \`internal/database/database.go\` and \`internal/config/config.go\` **MUST NOT BE MODIFIED** unless new environment variables or database connection configurations need to be explicitly added or changed.
 
-### 4. Struct-Based Pattern (MUST Use Structs, NOT Global Variables / Loose Functions)
+### ${sectionIndex++}. Struct-Based Pattern (MUST Use Structs, NOT Global Variables / Loose Functions)
 - **Dependency Injection via Structs:** All repositories, services, and handlers **MUST** be implemented as methods on a **\`struct\`** with constructor functions \`New...()\`.
 - **NEVER use global variables or package-level mutable state:** Do not store database instances (\`*gorm.DB\`), authentication state, or dependencies in global variables. All dependencies must be injected via struct fields during initialization in \`routes.SetupRoutes\`.
 - **Method Receivers:**
@@ -102,7 +145,7 @@ This backend stack is built with **Go (Golang) 1.23+**, **Fiber v3**, **GORM**, 
   - Services: \`func (s *userService) Register(req RegisterRequest) (*AuthResponse, error)\`
   - Handlers: \`func (h *UserHandler) Register(c fiber.Ctx) error\`
 
-### 5. Naming Conventions per Layer
+### ${sectionIndex++}. Naming Conventions per Layer
 | Layer | Folder Location | File Naming Convention | Struct / Interface Convention | Constructor / Function |
 |---|---|---|---|---|
 | **Models** | \`internal/models/\` | \`snake_case.go\` (\`user.go\`) | \`PascalCase\` (\`type User struct\`) | - |
@@ -114,7 +157,7 @@ This backend stack is built with **Go (Golang) 1.23+**, **Fiber v3**, **GORM**, 
 | **Utilities** | \`internal/pkg/\` | \`snake_case.go\` (\`argon2.go\`) | Helper structs if needed | \`PascalCase\` functions |
 | **Scripts** | \`internal/scripts/\` | \`snake_case.go\` (\`auto_migrate.go\`) | - | \`main()\` |
 
-### 6. Standard JSON Response Shape
+### ${sectionIndex++}. Standard JSON Response Shape
 All HTTP handlers must return responses matching the standard format:
 \`\`\`json
 {
@@ -133,23 +176,33 @@ In error cases:
 \`\`\``);
   }
 
-  // Frontend Directives (if Frontend present)
-  if (hasFrontend) {
-    const feIndex = hasGo ? 7 : 2;
-    sections.push(`### ${feIndex}. Server Component Priority, Colocation & File Size Limit
+  // Next.js Frontend Directives (if Next.js present)
+  if (hasNextjs) {
+    sections.push(`### ${sectionIndex++}. Next.js Server Component Priority, Colocation & File Size Limit
 - **Server Component First (\`page.tsx\`):** All Next.js pages MUST be Server Components for SSR, server-side route guards (\`redirect("/login")\`), and explicit \`Metadata\`.
 - **Colocated Client Components (\`[Feature]Client.tsx\`):** Place interactive client wrappers directly in the route folder alongside \`page.tsx\` (e.g., \`app/(dashboard)/dashboard/DashboardClient.tsx\`).
 - **Route-Level \`loading.tsx\`:** Place dedicated loading skeletons in route folders instead of messy \`if (isLoading)\` state branches in components.
-- **Strict File Length Limit (< 200 Lines):** Keep all files concise and modular under 200 lines. Extract subcomponents into dedicated files.
+- **Strict File Length Limit (< 200 Lines):** Keep all files concise and modular under 200 lines. Extract subcomponents into dedicated files.`);
+  }
 
-### ${feIndex + 1}. Type Safety & Single Source of Truth (Zod Rule)
+  // React-Vite Frontend Directives (if React Vite present)
+  if (isReactVite) {
+    sections.push(`### ${sectionIndex++}. React + Vite Client Architecture
+- **Environment Variables:** Use \`import.meta.env.VITE_*\` (never \`process.env\`).
+- **Path Alias:** Use \`@/*\` mapped to \`./src/*\`.
+- **Client API Integration:** All API calls route through \`src/lib/ApiClient.ts\` (Axios instance configured with \`baseURL: import.meta.env.VITE_API_URL\` and \`withCredentials: true\`).
+- **Strict File Length Limit (< 200 Lines):** Keep all component files concise and modular under 200 lines. Extract subcomponents into dedicated files.`);
+  }
+
+  // Type Safety & Single Source of Truth (if Frontend present)
+  if (hasFrontend) {
+    sections.push(`### ${sectionIndex++}. Type Safety & Single Source of Truth (Zod Rule)
 - **Zero Arbitrary Types:** Never create loose, unvalidated TypeScript interfaces for core domain entities.
-- **Schema-First Inference:** Always define runtime Zod schemas in \`schemas/\` and infer types using \`export type User = z.infer<typeof UserSchema>;\`.`);
+- **Schema-First Inference:** Always define runtime Zod schemas in \`schemas/\` (or \`src/schemas/\`) and infer types using \`export type User = z.infer<typeof UserSchema>;\`.`);
   }
 
   // Final Section: UI/UX Craft & Anti-Slop
-  const craftNumber = hasGo && hasFrontend ? 9 : hasGo ? 7 : 4;
-  sections.push(`### ${craftNumber}. UI/UX Craft & Anti-Slop Principles
+  sections.push(`### ${sectionIndex++}. UI/UX Craft & Anti-Slop Principles
 - **No Em-Dashes (\`—\`):** Never use em-dashes in user-facing copy or labels.
 - **No AI Buzzwords:** Keep copy simple, natural, and humble. Avoid words like "delve", "testament", "unleash", "elevate", "cutting-edge", "game-changer", "tapestry", "seamlessly", "enterprise-grade".
 - **Single-Line Desktop Actions:** Navbar, primary CTA buttons, and header action rows must remain single-line without awkward wrapping.

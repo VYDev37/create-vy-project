@@ -305,11 +305,35 @@ export async function scaffold(answers: Answers) {
         );
       }
     }
+
+    let templateFolder = stack;
+    if (stack === "go-fiber") {
+      templateFolder = database === "sqlite" ? "go-fiber-sqlite" : "go-fiber";
+    } else if (stack === "nextjs-fullstack") {
+      templateFolder = database === "postgres" ? "nextjs-fullstack-psql" : "nextjs-fullstack";
+    }
+
+    const templateSkillsDir = path.join(templatesDir, templateFolder, ".agents", "skills");
+    if (await fs.pathExists(templateSkillsDir)) {
+      await fs.copy(templateSkillsDir, agentSkillsDir, { overwrite: true });
+    }
   }
 
   const agentsMdContent = generateAgentsMd(selectedStacks);
   await fs.writeFile(path.join(projectRoot, "AGENTS.md"), agentsMdContent, "utf-8");
-  s.stop(".agents/skills/ and AGENTS.md configured");
+  await fs.writeFile(path.join(projectRoot, "CLAUDE.md"), "@AGENTS.md\n", "utf-8");
+
+  if (isCombo) {
+    const backendDir = path.join(projectRoot, "backend");
+    const frontendDir = path.join(projectRoot, "frontend");
+    if (await fs.pathExists(backendDir)) {
+      await fs.writeFile(path.join(backendDir, "CLAUDE.md"), "@AGENTS.md\n", "utf-8");
+    }
+    if (await fs.pathExists(frontendDir)) {
+      await fs.writeFile(path.join(frontendDir, "CLAUDE.md"), "@AGENTS.md\n", "utf-8");
+    }
+  }
+  s.stop(".agents/skills/, AGENTS.md, and CLAUDE.md configured");
 
   const pkgManager = getPackageManager();
   const installCmd = getInstallCmd(pkgManager);
