@@ -1,7 +1,7 @@
 {
   "name": "create-vy-project",
   "version": "0.1.7",
-  "description": "Fast scaffolding CLI for Next.js 16, React 19 Vite, and Go Fiber projects",
+  "description": "Fast scaffolding CLI for Next.js 16, React 19 Vite, Go Fiber, and Discord Bot projects",
   "type": "module",
   "main": "./dist/index.js",
   "bin": {
@@ -25,6 +25,8 @@
     "react",
     "vite",
     "go-fiber",
+    "discord-bot",
+    "discord-js",
     "scaffold",
     "cli"
   ],

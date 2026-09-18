@@ -4,7 +4,7 @@ import { text, select, isCancel, cancel } from "@clack/prompts";
 export type Answers = {
   projectName: string;
   isCurrentDir?: boolean;
-  type: "fullstack" | "frontend+backend" | "frontend" | "backend";
+  type: "fullstack" | "frontend+backend" | "frontend" | "backend" | "discord-bot";
   frontend?: "nextjs-fullstack" | "nextjs-frontend" | "react-vite";
   backend?: "go-fiber" | "laravel";
   database?: "sqlite" | "postgres";
@@ -72,6 +72,11 @@ export async function runPrompts(targetArg?: string): Promise<Answers> {
         value: "frontend",
         label: "Frontend only",
         hint: "SPA / Frontend application",
+      },
+      {
+        value: "discord-bot",
+        label: "Discord Bot",
+        hint: "Discord.js v14 TypeScript bot with Slash Commands",
       },
     ],
   });

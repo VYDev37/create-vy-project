@@ -87,6 +87,12 @@ A lightweight React single-page application:
 * **State & Forms**: Zustand store, React Hook Form, and Zod
 * **API Client**: Configured Axios instance ready to connect to a backend
 
+### 4. Discord Bot (`discord-bot`)
+A modern, modular Discord Bot starter:
+* **Framework**: TypeScript with Discord.js v14
+* **Features**: Native Slash Commands (`/ping`, `/help`, `/serverinfo`), auto-deferral, modular `commands` and `listeners` architecture
+* **Runtime**: Compatible with Node.js and Bun
+
 ---
 
 ## Project Conventions
@@ -95,6 +101,9 @@ A lightweight React single-page application:
 * **React & Frontend (PascalCase):** Custom components, schemas, stores, and pages use `PascalCase` (`Navbar.tsx`, `HeroSection.tsx`, `LoginForm.tsx`, `UserSchema.ts`, `AuthStore.ts`).
   * Exception: Generic UI primitives in `@/components/ui/` keep standard shadcn `kebab-case` (`button.tsx`, `dialog.tsx`).
 * **Golang Backend (lowercase & snake_case):** All Golang files (`.go`) strictly use `lowercase` and `snake_case` (`user_handler.go`, `user_repository.go`, `user_service.go`, `auto_migrate.go`, `read_env.go`, `main.go`). Never use PascalCase or camelCase for Go files.
+* **Discord Bot (Exact Name Match):**
+  * Command files in `src/commands/` match the exact slash command name (`ping.ts`, `help.ts`, `serverinfo.ts`).
+  * Listener files in `src/listeners/` match the exact Discord.js event name in camelCase (`clientReady.ts`, `interactionCreate.ts`).
 
 ### 2. Zod as Single Source of Truth
 Types are inferred directly from Zod schemas instead of maintaining separate TypeScript interfaces:

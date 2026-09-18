@@ -41,4 +41,8 @@ export const skillMap: Record<string, string[]> = {
     'general/stop-slop.md',
     'backend/laravel-convention.md',
   ],
+  'discord-bot': [
+    'general/stop-slop.md',
+    'bot/discord-bot-convention.md',
+  ],
 };

@@ -28,6 +28,9 @@ async function copyAssets() {
           basename !== ".next" &&
           basename !== "dist" &&
           basename !== "pnpm-lock.yaml" &&
+          basename !== "bun.lock" &&
+          basename !== "package-lock.json" &&
+          basename !== ".env" &&
           !basename.endsWith(".db") &&
           !basename.endsWith(".db-journal")
         );

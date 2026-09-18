@@ -2,3 +2,4 @@ packages:
   - 'packages/*'
   - 'templates/nextjs-*'
   - 'templates/react-*'
+  - 'templates/discord-*'

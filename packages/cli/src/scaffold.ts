@@ -270,6 +270,40 @@ export async function scaffold(answers: Answers) {
     }
     await ensureGitignore(frontendDest);
     s.stop(`React Vite template files copied and configured`);
+  } else if (type === "discord-bot") {
+    selectedStacks.push("discord-bot");
+    const templateSrc = path.join(templatesDir, "discord-bot-template");
+
+    s.start("Copying Discord Bot template...");
+    await fs.ensureDir(projectRoot);
+    await fs.copy(templateSrc, projectRoot, {
+      filter: (src) => {
+        const basename = path.basename(src);
+        return (
+          basename !== "node_modules" &&
+          basename !== "dist" &&
+          basename !== ".env" &&
+          basename !== "bun.lock" &&
+          basename !== "pnpm-lock.yaml" &&
+          basename !== "package-lock.json"
+        );
+      },
+    });
+
+    const envExamplePath = path.join(projectRoot, ".env.example");
+    const envPath = path.join(projectRoot, ".env");
+    if ((await fs.pathExists(envExamplePath)) && !(await fs.pathExists(envPath))) {
+      await fs.copy(envExamplePath, envPath);
+    }
+
+    const pkgJsonPath = path.join(projectRoot, "package.json");
+    if (await fs.pathExists(pkgJsonPath)) {
+      const pkg = await fs.readJson(pkgJsonPath);
+      pkg.name = effectiveProjectName;
+      await fs.writeJson(pkgJsonPath, pkg, { spaces: 2 });
+    }
+    await ensureGitignore(projectRoot);
+    s.stop("Discord Bot template files copied and configured");
   }
 
   if (isCombo) {
@@ -311,6 +345,8 @@ export async function scaffold(answers: Answers) {
       templateFolder = database === "sqlite" ? "go-fiber-sqlite" : "go-fiber";
     } else if (stack === "nextjs-fullstack") {
       templateFolder = database === "postgres" ? "nextjs-fullstack-psql" : "nextjs-fullstack";
+    } else if (stack === "discord-bot") {
+      templateFolder = "discord-bot-template";
     }
 
     const templateSkillsDir = path.join(templatesDir, templateFolder, ".agents", "skills");
@@ -370,6 +406,14 @@ Database commands:
     const cdCmd = isCurrentDir ? "" : `cd ${projectName}\n`;
     nextSteps = `${cdCmd}go run ./internal/scripts/auto_migrate.go
 go run ./cmd/main.go`;
+  } else if (type === "discord-bot") {
+    const cdCmd = isCurrentDir ? "" : `cd ${projectName}\n`;
+    nextSteps = `${cdCmd}${installCmd}
+${devCmd}
+
+Or with Bun:
+${cdCmd ? `cd ${projectName}\n` : ""}bun install
+bun run dev:bun`;
   } else if (frontend) {
     const cdCmd = isCurrentDir ? "" : `cd ${projectName}\n`;
     nextSteps = `${cdCmd}${installCmd}

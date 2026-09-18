@@ -5,6 +5,7 @@ export function generateAgentsMd(stacks: string[]): string {
   const isReactVite = stacks.includes("react-vite");
   const hasFrontend = hasNextjs || isReactVite;
   const hasLaravel = stacks.includes("laravel");
+  const hasDiscordBot = stacks.includes("discord-bot") || stacks.includes("discord-bot-template");
 
   const skillGuidelines: string[] = [
     "- **General & Anti-Slop:** Read `.agents/skills/general/stop-slop.md` for clean, human, humble writing without AI buzzwords or em-dashes.",
@@ -22,6 +23,12 @@ export function generateAgentsMd(stacks: string[]): string {
   if (hasLaravel) {
     skillGuidelines.push(
       "- **Laravel Architecture & Conventions:** Read `.agents/skills/backend/laravel-convention.md` for modern Laravel best practices and standard structures."
+    );
+  }
+
+  if (hasDiscordBot) {
+    skillGuidelines.push(
+      "- **Discord Bot Architecture & Conventions:** Read `.agents/skills/bot/discord-bot-convention.md` for discord.js v14 handlers, ICommand interfaces, slash command registration, and interaction handling."
     );
   }
 
@@ -53,7 +60,14 @@ export function generateAgentsMd(stacks: string[]): string {
       "- **Golang Files (Strict Lowercase & snake_case):** Specifically for all Golang source files (`.go`), file names **MUST** use **`lowercase`** and **`snake_case`** format (e.g., `user_handler.go`, `user_repository.go`, `user_service.go`, `auto_migrate.go`, `read_env.go`, `auth.go`, `main.go`). NEVER use PascalCase (e.g., `UserHandler.go`), camelCase (e.g., `userHandler.go`), or kebab-case for any Go file names. All Go directories MUST also use lowercase (`cmd/`, `internal/handlers/`, etc.)."
     );
   }
-  if (hasFrontend || !hasGo) {
+  if (hasDiscordBot) {
+    namingItems.push(
+      "- **Path Alias (`@/*`):** Use `@/*` mapped to `./src/*` for all internal project imports (e.g., `@/commands`, `@/listeners`, `@/interfaces/command`, `@/config`). NEVER use messy relative paths (`../../`).",
+      "- **Slash Command Files (Exact Match with Command Name):** File names in `src/commands/` **MUST** match the exact slash command name in `lowercase`/`kebab-case` (e.g., slash command `/ping` -> `ping.ts`, `/help` -> `help.ts`, `/serverinfo` -> `serverinfo.ts`).",
+      "- **Event Listener Files (Exact Match with Event Name):** File names in `src/listeners/` **MUST** match the exact Discord.js event name in `camelCase` (e.g., event `clientReady` -> `clientReady.ts`, event `interactionCreate` -> `interactionCreate.ts`, event `guildMemberAdd` -> `guildMemberAdd.ts`, event `messageCreate` -> `messageCreate.ts`)."
+    );
+  }
+  if (hasFrontend) {
     namingItems.push(
       "- **PascalCase by Default (Frontend & React):** All custom React components, layouts, sections, schemas, stores, and frontend providers MUST be named in **`PascalCase`** (e.g., `Navbar.tsx`, `HeroSection.tsx`, `LoginForm.tsx`, `UserSchema.ts`, `AuthStore.ts`, `UserProvider.tsx`)."
     );
@@ -199,6 +213,31 @@ In error cases:
     sections.push(`### ${sectionIndex++}. Type Safety & Single Source of Truth (Zod Rule)
 - **Zero Arbitrary Types:** Never create loose, unvalidated TypeScript interfaces for core domain entities.
 - **Schema-First Inference:** Always define runtime Zod schemas in \`schemas/\` (or \`src/schemas/\`) and infer types using \`export type User = z.infer<typeof UserSchema>;\`.`);
+  }
+
+  // Discord Bot Architecture Directives (if Discord Bot present)
+  if (hasDiscordBot) {
+    sections.push(`### ${sectionIndex++}. Discord Bot Architecture & Directives
+This bot is built with **TypeScript** and **discord.js v14** using native **Slash Commands** (\`/\`).
+
+- **\`src/commands/\` (Slash Commands Layer):**
+  - Every command must implement the \`ICommand\` interface (\`ChatInputApplicationCommandData\` + \`run\` handler).
+  - Export the command object with PascalCase (e.g., \`export const PingCommand: ICommand = { ... }\`).
+  - Always register new commands in the \`Commands\` array in \`src/commands/index.ts\`.
+- **\`src/listeners/\` (Event Listeners Layer):**
+  - Event listeners attach handlers to the \`Client\` instance.
+  - Export a default function: \`export default (client: Client): void => { ... }\`.
+  - Listeners are wired in \`src/index.ts\`.
+- **\`src/config.ts\` (Centralized Environment Configuration & Single Source of Truth):**
+  - All environment variables **MUST** be loaded and typed exclusively via \`src/config.ts\` (\`Config\` interface & \`loadConfig()\`).
+  - **NEVER** use \`process.env\` directly in commands, listeners, or handlers. Always import \`config\` or named exports from \`src/config.ts\`.
+- **Interaction Deferral & Auto-Defer:**
+  - Discord requires interaction acknowledgements within **3 seconds** before timing out.
+  - In \`interactionCreate.ts\`, always call \`await interaction.deferReply()\` and reply inside handlers using \`await interaction.editReply(...)\`.
+- **Error Handling:**
+  - Wrap command execution in \`try / catch\` and respond with informative error \`EmbedBuilder\` embeds.
+- **Environment & Secrets:**
+  - Store tokens in \`.env\` (\`BOT_TOKEN\`, optional \`GUILD_ID\`). Never commit raw bot tokens to version control.`);
   }
 
   // Final Section: UI/UX Craft & Anti-Slop

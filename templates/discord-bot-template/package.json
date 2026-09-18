@@ -1,0 +1,31 @@
+{
+  "name": "discord-bot-template",
+  "version": "1.0.0",
+  "description": "Clean and modular Discord Bot template in TypeScript with discord.js v14 slash commands",
+  "main": "dist/index.js",
+  "scripts": {
+    "dev": "tsx watch src/index.ts",
+    "dev:bun": "bun --watch src/index.ts",
+    "build": "tsc",
+    "start": "node dist/index.js",
+    "start:bun": "bun run src/index.ts",
+    "typecheck": "tsc --noEmit"
+  },
+  "keywords": [
+    "discord",
+    "discord-bot",
+    "discord-js",
+    "typescript",
+    "slash-commands"
+  ],
+  "license": "MIT",
+  "dependencies": {
+    "discord.js": "^14.18.0",
+    "dotenv": "^16.4.7"
+  },
+  "devDependencies": {
+    "@types/node": "^22.13.9",
+    "tsx": "^4.19.3",
+    "typescript": "^5.8.2"
+  }
+}

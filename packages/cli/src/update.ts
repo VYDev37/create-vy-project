@@ -50,6 +50,8 @@ async function detectStacks(projectRoot: string): Promise<string[]> {
           } else {
             detectedStacks.add("nextjs-fullstack");
           }
+        } else if (allDeps["discord.js"]) {
+          detectedStacks.add("discord-bot");
         } else if (allDeps.vite || allDeps.react) {
           detectedStacks.add("react-vite");
         }
@@ -122,6 +124,8 @@ export async function updateProject(targetDir?: string) {
         (await fs.pathExists(path.join(projectRoot, "sqlite.db"))) ||
         (await fs.pathExists(path.join(projectRoot, "backend", "sqlite.db")));
       templateFolder = isSqlite ? "go-fiber-sqlite" : "go-fiber";
+    } else if (stack === "discord-bot") {
+      templateFolder = "discord-bot-template";
     }
 
     const templateSkillsDir = path.join(templatesDir, templateFolder, ".agents", "skills");
