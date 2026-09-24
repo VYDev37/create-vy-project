@@ -24,6 +24,14 @@ Before modifying, generating, or refactoring code in this repository, agents MUS
 ### 2. Go Fiber Architecture & Layer Responsibilities
 This backend stack is built with **Go (Golang) 1.23+**, **Fiber v3**, **GORM**, and **JWT + Argon2id**. Each directory has strictly isolated architectural responsibilities:
 
+- **`internal/models/` (Database Table Definitions):**
+  - Struct model definitions representing GORM database tables along with JSON and GORM tags.
+  - File naming: `snake_case.go` (e.g., `user.go`), struct: `PascalCase` (`type User struct`).
+
+- **`internal/dto/` (Data Transfer Objects):**
+  - Request payloads (`*Request`) and sanitized response structs (`*Response`) isolating HTTP presentation schemas from database models.
+  - File naming: `[domain]_dto.go` (e.g., `auth_dto.go`, `user_dto.go`, `response_dto.go`).
+
 - **`internal/repositories/` (Direct Database Access Layer):**
   - **ALL** logic interacting directly with the database (`*gorm.DB`) **MUST** reside exclusively in this layer.
   - Prohibited from executing database queries directly inside services or handlers.
@@ -47,20 +55,16 @@ This backend stack is built with **Go (Golang) 1.23+**, **Fiber v3**, **GORM**, 
   - File naming: `routes.go`, function: `func SetupRoutes(app *fiber.App, cfg *config.Config, db *gorm.DB)`.
 
 - **`internal/middlewares/` (HTTP Middlewares):**
-  - Fiber middlewares (JWT authentication guard, CORS, logging, rate limiting).
-  - File naming: `snake_case.go` (e.g., `auth.go`, `cors.go`), function: `PascalCase(...) fiber.Handler`.
+  - Fiber middlewares (JWT authentication guard `Protected()`, Role-Based Access Control `RequireRole()`, `AdminOnly()`, CORS, rate limiting).
+  - File naming: `snake_case.go` (e.g., `auth.go`, `role.go`, `cors.go`), function: `PascalCase(...) fiber.Handler`.
 
 - **`internal/pkg/` (Utility Functions):**
-  - Collection of domain-agnostic, reusable utility and helper functions (e.g., `argon2.go`, `read_env.go`).
+  - Collection of domain-agnostic, reusable utility and helper functions (e.g., `argon2.go`, `jwt.go`, `read_env.go`).
   - File naming: `snake_case.go`.
 
 - **`internal/scripts/` (Standalone Utility Scripts):**
   - Standalone utility scripts such as database schema auto-migrations (`auto_migrate.go`).
   - File naming: `snake_case.go`.
-
-- **`internal/models/` (Database Table Definitions):**
-  - Struct model definitions representing GORM database tables along with JSON and GORM tags.
-  - File naming: `snake_case.go` (e.g., `user.go`), struct: `PascalCase` (`type User struct`).
 
 - **`cmd/main.go` (Entry Point):**
   - Application entry point for configuration loading, database connection initialization, Fiber app setup, and calling `routes.SetupRoutes`.
@@ -74,19 +78,20 @@ This backend stack is built with **Go (Golang) 1.23+**, **Fiber v3**, **GORM**, 
 - **NEVER use global variables or package-level mutable state:** Do not store database instances (`*gorm.DB`), authentication state, or dependencies in global variables. All dependencies must be injected via struct fields during initialization in `routes.SetupRoutes`.
 - **Method Receivers:**
   - Repositories: `func (r *userRepository) FindByID(id uint) (*models.User, error)`
-  - Services: `func (s *userService) Register(req RegisterRequest) (*AuthResponse, error)`
+  - Services: `func (s *userService) Register(req dto.RegisterRequest) (*dto.AuthResponse, error)`
   - Handlers: `func (h *UserHandler) Register(c fiber.Ctx) error`
 
 ### 5. Naming Conventions per Layer
 | Layer | Folder Location | File Naming Convention | Struct / Interface Convention | Constructor / Function |
 |---|---|---|---|---|
 | **Models** | `internal/models/` | `snake_case.go` (`user.go`) | `PascalCase` (`type User struct`) | - |
+| **DTOs** | `internal/dto/` | `[domain]_dto.go` (`auth_dto.go`) | `PascalCase` (`type RegisterRequest struct`) | - |
 | **Repositories** | `internal/repositories/` | `[domain]_repository.go` | Interface: `[Domain]Repository`<br>Struct: `[domain]Repository` | `New[Domain]Repository(db *gorm.DB)` |
 | **Services** | `internal/services/` | `[domain]_service.go` | Interface: `[Domain]Service`<br>Struct: `[domain]Service` | `New[Domain]Service(repo ...)` |
 | **Handlers** | `internal/handlers/` | `[domain]_handler.go` | Struct: `[Domain]Handler` | `New[Domain]Handler(svc ...)` |
-| **Middlewares** | `internal/middlewares/` | `snake_case.go` (`auth.go`) | - | `PascalCase(...) fiber.Handler` |
+| **Middlewares** | `internal/middlewares/` | `snake_case.go` (`auth.go`, `role.go`) | - | `PascalCase(...) fiber.Handler` |
 | **Routes** | `internal/routes/` | `routes.go` | - | `SetupRoutes(app, cfg, db)` |
-| **Utilities** | `internal/pkg/` | `snake_case.go` (`argon2.go`) | Helper structs if needed | `PascalCase` functions |
+| **Utilities** | `internal/pkg/` | `snake_case.go` (`argon2.go`, `jwt.go`) | Helper structs if needed | `PascalCase` functions |
 | **Scripts** | `internal/scripts/` | `snake_case.go` (`auto_migrate.go`) | - | `main()` |
 
 ### 6. Standard JSON Response Shape
@@ -107,8 +112,27 @@ In error cases:
 }
 ```
 
-### 7. UI/UX Craft & Anti-Slop Principles
+### 7. Database Indexing Strategy (When to Index vs When NOT to Index)
+- **When to Index (High Value):**
+  - **Foreign keys & JOIN columns:** Always index references (`user_id`, `tenant_id`, `order_id`) to avoid full table scans during joins (`gorm:"index"`).
+  - **High-cardinality lookup filters:** Unique columns frequently filtered in `WHERE` clauses (`email`, `username`, `slug`, `api_key`).
+  - **Sorting & Range Queries:** Frequently sorted timestamps in pagination (`created_at DESC`, `deleted_at`).
+  - **Composite Indexes:** Multiple columns queried together following the leftmost prefix rule.
+- **When NOT to Index (Avoid Bloat & Slow Writes):**
+  - **Low-cardinality boolean flags alone:** Standalone `is_active` or `is_verified` where full table scan is faster.
+  - **Small / Static Tables:** Tables with < 500 rows.
+  - **High-Throughput Counter Columns:** Rapidly mutated columns (`view_count`, `last_active_at`) where B-tree index rebalancing degrades write throughput.
+  - **Unbounded Text/JSON:** Avoid indexing raw long text without prefix or GIN/GiST.
+
+### 8. Security & Error Leakage Prevention
+- **Zero Internal Error Leakage:** API handlers MUST NEVER expose raw database error messages, SQL syntax strings, internal file paths, or stack traces in HTTP JSON responses.
+- **Server-Side Logging:** Log raw errors exclusively to the server console or structured logger (`log.Printf("[ERROR] ...: %v", err)`).
+- **Sanitized Client Responses:** Return clear, sanitized, user-friendly messages to the frontend (e.g., `"Invalid username or password"`, `"User not found"`, `"Invalid request payload"`).
+- **Request Validation:** Validate incoming request payloads at the handler level using `validator/v10` and format readable validation error messages.
+
+### 9. UI/UX Craft & Anti-Slop Principles
 - **No Em-Dashes (`—`):** Never use em-dashes in user-facing copy or labels.
 - **No AI Buzzwords:** Keep copy simple, natural, and humble. Avoid words like "delve", "testament", "unleash", "elevate", "cutting-edge", "game-changer", "tapestry", "seamlessly", "enterprise-grade".
 - **Single-Line Desktop Actions:** Navbar, primary CTA buttons, and header action rows must remain single-line without awkward wrapping.
 - **Strict WCAG AA:** All text, badges, and form controls must maintain high contrast (minimum 4.5:1).
+

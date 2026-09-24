@@ -1,21 +1,11 @@
-import { Navigate, Outlet } from "react-router-dom";
-import { useAuth } from "@/hooks/useAuth";
-import { PageLoading } from "@/pages/loading";
+import { RouteGuard } from "./RouteGuard";
+import { authMiddleware, type RouteMiddleware } from "@/middleware/RouteMiddleware";
 
 interface ProtectedRouteProps {
+  middlewares?: RouteMiddleware[];
   children?: React.ReactNode;
 }
 
-export function ProtectedRoute({ children }: ProtectedRouteProps) {
-  const { isAuthenticated, isLoading } = useAuth();
-
-  if (isLoading) {
-    return <PageLoading />;
-  }
-
-  if (!isAuthenticated) {
-    return <Navigate to="/login" replace />;
-  }
-
-  return children ? <>{children}</> : <Outlet />;
+export function ProtectedRoute({ middlewares = [authMiddleware], children }: ProtectedRouteProps) {
+  return <RouteGuard middlewares={middlewares}>{children}</RouteGuard>;
 }

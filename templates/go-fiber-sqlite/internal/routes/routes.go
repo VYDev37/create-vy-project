@@ -1,7 +1,12 @@
 package routes
 
 import (
+	"time"
+
 	"github.com/gofiber/fiber/v3"
+	"github.com/gofiber/fiber/v3/middleware/helmet"
+	"github.com/gofiber/fiber/v3/middleware/limiter"
+	"github.com/gofiber/fiber/v3/middleware/recover"
 	"gorm.io/gorm"
 
 	"go-fiber/internal/config"
@@ -12,6 +17,8 @@ import (
 )
 
 func SetupRoutes(app *fiber.App, cfg *config.Config, db *gorm.DB) {
+	app.Use(recover.New())
+	app.Use(helmet.New())
 	app.Use(middlewares.NewCORS(cfg))
 
 	app.Get("/health", func(c fiber.Ctx) error {
@@ -30,12 +37,29 @@ func SetupRoutes(app *fiber.App, cfg *config.Config, db *gorm.DB) {
 
 	api := app.Group("/api/v1")
 
-	auth := api.Group("/auth")
+	// Rate limiter for authentication endpoints (anti-brute force)
+	authLimiter := limiter.New(limiter.Config{
+		Max:        10,
+		Expiration: 1 * time.Minute,
+		LimitReached: func(c fiber.Ctx) error {
+			return c.Status(fiber.StatusTooManyRequests).JSON(fiber.Map{
+				"success": false,
+				"message": "Too many requests, please try again after a minute",
+				"data":    nil,
+			})
+		},
+	})
+
+	// Public Auth Endpoints
+	auth := api.Group("/auth", authLimiter)
 	auth.Post("/register", userHandler.Register)
 	auth.Post("/login", userHandler.Login)
 	auth.Post("/logout", userHandler.Logout)
 
+	// Protected User Endpoints
 	users := api.Group("/users", middlewares.Protected(cfg.JWTSecret))
 	users.Get("/me", userHandler.GetProfile)
-	users.Get("/", userHandler.GetAllUsers)
+
+	// Admin Only Endpoints (Level 2)
+	users.Get("/", middlewares.AdminOnly(), userHandler.GetAllUsers)
 }

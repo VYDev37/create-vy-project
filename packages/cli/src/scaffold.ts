@@ -108,6 +108,30 @@ function getRunCmd(pkg: PackageManager, script: string): string {
   }
 }
 
+function isSafeTemplateFile(src: string): boolean {
+  const basename = path.basename(src);
+  if (
+    basename === "node_modules" ||
+    basename === ".next" ||
+    basename === "dist" ||
+    basename === ".git" ||
+    basename === ".env" ||
+    basename === ".env.local" ||
+    basename.startsWith(".env.") ||
+    basename === "pnpm-lock.yaml" ||
+    basename === "package-lock.json" ||
+    basename === "bun.lock" ||
+    basename === "bun.lockb" ||
+    basename.endsWith(".db") ||
+    basename.endsWith(".db-journal") ||
+    basename.endsWith(".db-wal") ||
+    basename.endsWith(".db-shm")
+  ) {
+    return false;
+  }
+  return true;
+}
+
 export async function scaffold(answers: Answers) {
   const { projectName, isCurrentDir, type, backend, frontend, database, username } = answers;
   const projectRoot = isCurrentDir ? process.cwd() : path.resolve(process.cwd(), projectName);
@@ -126,19 +150,23 @@ export async function scaffold(answers: Answers) {
   if (backend === "go-fiber") {
     selectedStacks.push("go-fiber");
     const backendDest = isCombo ? path.join(projectRoot, "backend") : projectRoot;
-    const templateFolder = database === "sqlite" ? "go-fiber-sqlite" : "go-fiber";
+    let templateFolder = "go-fiber";
+    if (answers.architecture === "clean") {
+      templateFolder = database === "sqlite" ? "go-fiber-clean-sqlite" : "go-fiber-clean";
+    } else {
+      templateFolder = database === "sqlite" ? "go-fiber-sqlite" : "go-fiber";
+    }
     const templateSrc = path.join(templatesDir, templateFolder);
     const goModuleName = username
       ? `github.com/${username}/${effectiveProjectName}${isCombo ? "/backend" : ""}`
       : effectiveProjectName;
 
-    s.start(`Copying Go Fiber template (${database === "sqlite" ? "SQLite" : "PostgreSQL"})...`);
+    const archLabel = answers.architecture === "clean" ? "Clean Architecture" : "Layered Architecture";
+    const dbLabel = database === "sqlite" ? "SQLite" : "PostgreSQL";
+    s.start(`Copying Go Fiber template (${archLabel} + ${dbLabel})...`);
     await fs.ensureDir(backendDest);
     await fs.copy(templateSrc, backendDest, {
-      filter: (src) => {
-        const basename = path.basename(src);
-        return basename !== "node_modules" && !basename.endsWith(".db") && !basename.endsWith(".db-journal");
-      },
+      filter: (src) => isSafeTemplateFile(src),
     });
 
     // Create .env from .env.example
@@ -174,17 +202,7 @@ export async function scaffold(answers: Answers) {
     s.start(`Copying Next.js Fullstack template (${database === "postgres" ? "PostgreSQL" : "SQLite"})...`);
     await fs.ensureDir(frontendDest);
     await fs.copy(templateSrc, frontendDest, {
-      filter: (src) => {
-        const basename = path.basename(src);
-        return (
-          basename !== "node_modules" &&
-          basename !== ".next" &&
-          basename !== "dist" &&
-          basename !== "pnpm-lock.yaml" &&
-          !basename.endsWith(".db") &&
-          !basename.endsWith(".db-journal")
-        );
-      },
+      filter: (src) => isSafeTemplateFile(src),
     });
 
     // Create .env from .env.example
@@ -211,17 +229,7 @@ export async function scaffold(answers: Answers) {
     s.start(`Copying Next.js Frontend template...`);
     await fs.ensureDir(frontendDest);
     await fs.copy(templateSrc, frontendDest, {
-      filter: (src) => {
-        const basename = path.basename(src);
-        return (
-          basename !== "node_modules" &&
-          basename !== ".next" &&
-          basename !== "dist" &&
-          basename !== "pnpm-lock.yaml" &&
-          !basename.endsWith(".db") &&
-          !basename.endsWith(".db-journal")
-        );
-      },
+      filter: (src) => isSafeTemplateFile(src),
     });
 
     const envExamplePath = path.join(frontendDest, ".env.example");
@@ -246,14 +254,7 @@ export async function scaffold(answers: Answers) {
     s.start(`Copying React Vite template...`);
     await fs.ensureDir(frontendDest);
     await fs.copy(templateSrc, frontendDest, {
-      filter: (src) => {
-        const basename = path.basename(src);
-        return (
-          basename !== "node_modules" &&
-          basename !== "dist" &&
-          basename !== "pnpm-lock.yaml"
-        );
-      },
+      filter: (src) => isSafeTemplateFile(src),
     });
 
     const envExamplePath = path.join(frontendDest, ".env.example");
@@ -277,17 +278,7 @@ export async function scaffold(answers: Answers) {
     s.start("Copying Discord Bot template...");
     await fs.ensureDir(projectRoot);
     await fs.copy(templateSrc, projectRoot, {
-      filter: (src) => {
-        const basename = path.basename(src);
-        return (
-          basename !== "node_modules" &&
-          basename !== "dist" &&
-          basename !== ".env" &&
-          basename !== "bun.lock" &&
-          basename !== "pnpm-lock.yaml" &&
-          basename !== "package-lock.json"
-        );
-      },
+      filter: (src) => isSafeTemplateFile(src),
     });
 
     const envExamplePath = path.join(projectRoot, ".env.example");
@@ -342,7 +333,11 @@ export async function scaffold(answers: Answers) {
 
     let templateFolder = stack;
     if (stack === "go-fiber") {
-      templateFolder = database === "sqlite" ? "go-fiber-sqlite" : "go-fiber";
+      if (answers.architecture === "clean") {
+        templateFolder = database === "sqlite" ? "go-fiber-clean-sqlite" : "go-fiber-clean";
+      } else {
+        templateFolder = database === "sqlite" ? "go-fiber-sqlite" : "go-fiber";
+      }
     } else if (stack === "nextjs-fullstack") {
       templateFolder = database === "postgres" ? "nextjs-fullstack-psql" : "nextjs-fullstack";
     } else if (stack === "discord-bot") {
@@ -355,7 +350,37 @@ export async function scaffold(answers: Answers) {
     }
   }
 
-  const agentsMdContent = generateAgentsMd(selectedStacks);
+  let agentsMdContent = "";
+  if (!isCombo) {
+    let singleTemplateFolder = "";
+    if (backend === "go-fiber") {
+      if (answers.architecture === "clean") {
+        singleTemplateFolder = database === "sqlite" ? "go-fiber-clean-sqlite" : "go-fiber-clean";
+      } else {
+        singleTemplateFolder = database === "sqlite" ? "go-fiber-sqlite" : "go-fiber";
+      }
+    } else if (frontend === "nextjs-fullstack") {
+      singleTemplateFolder = database === "postgres" ? "nextjs-fullstack-psql" : "nextjs-fullstack";
+    } else if (frontend === "nextjs-frontend") {
+      singleTemplateFolder = "nextjs-frontend";
+    } else if (frontend === "react-vite") {
+      singleTemplateFolder = "react-vite";
+    } else if (type === "discord-bot") {
+      singleTemplateFolder = "discord-bot-template";
+    }
+
+    if (singleTemplateFolder) {
+      const templateAgentsMd = path.join(templatesDir, singleTemplateFolder, "AGENTS.md");
+      if (await fs.pathExists(templateAgentsMd)) {
+        agentsMdContent = await fs.readFile(templateAgentsMd, "utf-8");
+      }
+    }
+  }
+
+  if (!agentsMdContent) {
+    agentsMdContent = generateAgentsMd(selectedStacks, answers.architecture);
+  }
+
   await fs.writeFile(path.join(projectRoot, "AGENTS.md"), agentsMdContent, "utf-8");
   await fs.writeFile(path.join(projectRoot, "CLAUDE.md"), "@AGENTS.md\n", "utf-8");
 

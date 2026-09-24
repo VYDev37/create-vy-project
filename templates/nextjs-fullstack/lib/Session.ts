@@ -2,10 +2,21 @@ import { getIronSession, SessionOptions } from "iron-session";
 import { cookies } from "next/headers";
 import type { SessionData } from "@/schemas/AuthSchema";
 
+function getSessionPassword(): string {
+  const secret = process.env.SECRET_COOKIE_PASSWORD;
+  if (!secret) {
+    if (process.env.NODE_ENV === "production") {
+      throw new Error(
+        "FATAL: SECRET_COOKIE_PASSWORD environment variable is missing in production. Set a secure password with at least 32 characters."
+      );
+    }
+    return "complex_password_at_least_32_characters_long_for_iron_session";
+  }
+  return secret;
+}
+
 export const sessionOptions: SessionOptions = {
-  password:
-    process.env.SECRET_COOKIE_PASSWORD ||
-    "complex_password_at_least_32_characters_long_for_iron_session",
+  password: getSessionPassword(),
   cookieName: "token",
   cookieOptions: {
     secure: process.env.NODE_ENV === "production",

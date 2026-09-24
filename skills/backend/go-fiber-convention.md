@@ -12,7 +12,7 @@
 ## File Naming Conventions (Strict Golang Rule)
 - **Lowercase & snake_case for ALL Golang Files:** Specifically for all Golang source files (`.go`), file names **MUST** use **`lowercase`** and **`snake_case`** format (e.g., `user_handler.go`, `user_repository.go`, `user_service.go`, `auto_migrate.go`, `read_env.go`, `auth.go`, `main.go`).
 - **NO PascalCase / camelCase / kebab-case:** NEVER use PascalCase (e.g., `UserHandler.go`), camelCase (e.g., `userHandler.go`), or kebab-case (e.g., `user-handler.go`) for Go file names.
-- **Directories:** Use lowercase for all directories (e.g., `cmd/`, `internal/handlers/`, `internal/models/`, `internal/repositories/`, `internal/services/`, `internal/middlewares/`, `internal/routes/`, `internal/pkg/`, `internal/scripts/`).
+- **Directories:** Use lowercase for all directories (e.g., `cmd/`, `internal/dto/`, `internal/handlers/`, `internal/models/`, `internal/repositories/`, `internal/services/`, `internal/middlewares/`, `internal/routes/`, `internal/pkg/`, `internal/scripts/`).
 - **Code Symbols:** Go code symbols follow idiomatic Go conventions (PascalCase for exported/public identifiers, camelCase for unexported/private identifiers).
 
 ---
@@ -22,6 +22,10 @@
 - **`internal/models/` (Table Definitions):**
   - Dedicated to GORM struct model definitions representing database tables, along with JSON and GORM tags.
   - Naming: `snake_case.go` (e.g., `user.go`), struct `PascalCase` (`type User struct`).
+
+- **`internal/dto/` (Data Transfer Objects):**
+  - Request payloads (`*Request`) and sanitized response structs (`*Response`) isolating HTTP presentation schemas from database models.
+  - Naming: `[domain]_dto.go` (e.g., `auth_dto.go`, `user_dto.go`, `response_dto.go`).
 
 - **`internal/repositories/` (Direct Database Access):**
   - **ALL** direct interactions with the database (`*gorm.DB`) **MUST** reside exclusively in this layer. Strictly avoid invoking database queries directly from services or handlers.
@@ -45,11 +49,11 @@
   - Naming: `routes.go`, function: `func SetupRoutes(app *fiber.App, cfg *config.Config, db *gorm.DB)`.
 
 - **`internal/middlewares/` (HTTP Middlewares):**
-  - Fiber middlewares (CORS, JWT auth guard, request logging, rate limiting).
-  - Naming: `snake_case.go` (e.g., `auth.go`, `cors.go`), function: `PascalCase(...) fiber.Handler`.
+  - Fiber middlewares (CORS, JWT auth guard `Protected()`, Role-Based Access Control `RequireRole()`, `AdminOnly()`, rate limiting).
+  - Naming: `snake_case.go` (e.g., `auth.go`, `role.go`, `cors.go`), function: `PascalCase(...) fiber.Handler`.
 
 - **`internal/pkg/` (Utility Functions):**
-  - Reusable, domain-agnostic utility and helper functions (e.g., `argon2.go`, `read_env.go`).
+  - Reusable, domain-agnostic utility and helper functions (e.g., `argon2.go`, `jwt.go`, `read_env.go`).
 
 - **`internal/scripts/` (Standalone Scripts):**
   - Standalone utility scripts (e.g., `auto_migrate.go` for database schema migrations).
@@ -70,7 +74,7 @@
 - **NEVER use global variables or package-level mutable state:** Do not store database instances (`*gorm.DB`), authentication state, or dependencies in global variables. All dependencies must be injected via struct fields during initialization in `routes.SetupRoutes`.
 - **Method Receivers:**
   - Repositories: `func (r *userRepository) FindByID(id uint) (*models.User, error)`
-  - Services: `func (s *userService) Register(req RegisterRequest) (*AuthResponse, error)`
+  - Services: `func (s *userService) Register(req dto.RegisterRequest) (*dto.AuthResponse, error)`
   - Handlers: `func (h *UserHandler) Register(c fiber.Ctx) error`
 
 ---
@@ -79,12 +83,13 @@
 | Layer | Folder Location | File Naming Convention | Struct / Interface Convention | Constructor / Function |
 |---|---|---|---|---|
 | **Models** | `internal/models/` | `snake_case.go` (`user.go`) | `PascalCase` (`type User struct`) | - |
+| **DTOs** | `internal/dto/` | `[domain]_dto.go` (`auth_dto.go`) | `PascalCase` (`type RegisterRequest struct`) | - |
 | **Repositories** | `internal/repositories/` | `[domain]_repository.go` | Interface: `[Domain]Repository`<br>Struct: `[domain]Repository` | `New[Domain]Repository(db *gorm.DB)` |
 | **Services** | `internal/services/` | `[domain]_service.go` | Interface: `[Domain]Service`<br>Struct: `[domain]Service` | `New[Domain]Service(repo ...)` |
 | **Handlers** | `internal/handlers/` | `[domain]_handler.go` | Struct: `[Domain]Handler` | `New[Domain]Handler(svc ...)` |
-| **Middlewares** | `internal/middlewares/` | `snake_case.go` (`auth.go`) | - | `PascalCase(...) fiber.Handler` |
+| **Middlewares** | `internal/middlewares/` | `snake_case.go` (`auth.go`, `role.go`) | - | `PascalCase(...) fiber.Handler` |
 | **Routes** | `internal/routes/` | `routes.go` | - | `SetupRoutes(app, cfg, db)` |
-| **Utilities** | `internal/pkg/` | `snake_case.go` (`argon2.go`) | Helper structs if needed | `PascalCase` functions |
+| **Utilities** | `internal/pkg/` | `snake_case.go` (`argon2.go`, `jwt.go`) | Helper structs if needed | `PascalCase` functions |
 | **Scripts** | `internal/scripts/` | `snake_case.go` (`auto_migrate.go`) | - | `main()` |
 
 ---
@@ -102,7 +107,23 @@ In error cases:
 ```json
 {
   "success": false,
-  "message": "Error details",
+  "message": "Sanitized error details",
   "data": null
 }
 ```
+
+---
+
+## Input Validation & Sanitization (`internal/pkg/validator.go`)
+- **Validator Initialization**: Initialize `*validator.Validate` in handlers via `pkg.NewValidator()`.
+- **Validation Formatting**: Reuse `pkg.FormatValidationError(err)` across all handlers for human-readable tag translation (`required`, `email`, `min`, `max`, `alphanum`, `url`).
+- **Input Sanitization**: Always sanitize untrusted text inputs using `pkg.SanitizeString(input)` to strip HTML/script tags and trim whitespace.
+
+---
+
+## File Upload & Magic Bytes Validation (`internal/pkg/file_validator.go`)
+- **Never Trust Client Content-Type**: Client-supplied `Content-Type` headers and file extensions can be spoofed.
+- **Magic Bytes Detection**: Use `http.DetectContentType` on the initial 512 bytes (`pkg.ValidateUploadedFile(header, maxSizeBytes, allowedMimes)`).
+- **Strict Size Limits**: Enforce maximum payload size (e.g., 5MB).
+- **Safe Filename Generation**: Use cryptographically secure random strings or UUIDs when persisting files to disk to prevent path traversal.
+

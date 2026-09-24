@@ -1,7 +1,9 @@
 import { BrowserRouter, Routes, Route } from "react-router-dom";
 import { AppProvider } from "@/components/providers/AppProvider";
 import { AppLayout } from "@/components/layout/AppLayout";
+import { RouteGuard } from "@/components/auth/RouteGuard";
 import { ProtectedRoute } from "@/components/auth/ProtectedRoute";
+import { guestMiddleware } from "@/middleware/RouteMiddleware";
 import HomePage from "@/pages/home";
 import LoginPage from "@/pages/login";
 import RegisterPage from "@/pages/register";
@@ -14,12 +16,16 @@ export default function App() {
       <AppProvider>
         <Routes>
           <Route element={<AppLayout />}>
-            {/* Public routes */}
+            {/* Public landing page */}
             <Route path="/" element={<HomePage />} />
-            <Route path="/login" element={<LoginPage />} />
-            <Route path="/register" element={<RegisterPage />} />
 
-            {/* Protected routes (Route Guard / Middleware equivalent) */}
+            {/* Guest-only routes (redirects authenticated users to /dashboard) */}
+            <Route element={<RouteGuard middlewares={[guestMiddleware]} />}>
+              <Route path="/login" element={<LoginPage />} />
+              <Route path="/register" element={<RegisterPage />} />
+            </Route>
+
+            {/* Protected routes (requires authenticated user) */}
             <Route element={<ProtectedRoute />}>
               <Route path="/dashboard" element={<DashboardPage />} />
             </Route>

@@ -10,9 +10,10 @@ The goal of this project is simple: eliminate repetitive setup work by providing
 
 - **Simple & Organized**: Clean folder structures, clear naming, and no unnecessary abstractions.
 - **Modern Stacks**: Next.js 16 (App Router), Go (Fiber v3), React 19 (Vite), and Tailwind CSS v4.
+- **Architecture Options (Go Fiber)**: Choose between **Clean Architecture** (domain-driven handler, service, repository) and **Layered Architecture**.
 - **Flexible Database Choice**: Choose between **SQLite** (embedded, zero-config local prototyping) or **PostgreSQL** (production-ready, Supabase, Neon, Docker) for both Next.js Fullstack and Go Fiber backends.
-- **Working Authentication**: Sensible auth setups with Argon2 password hashing, secure sessions, and HTTP-only cookies.
-- **Type-Safe Validation**: Schema-first forms and requests powered by Zod and React Hook Form.
+- **Complete UI System**: Pre-configured shadcn UI primitives (Sidebar, Dialog, Sheet, Table, Dropdown Menu, Toast, etc.) with responsive mobile layouts.
+- **Production-Ready Security**: Argon2 password hashing, HTTP-only cookie sessions, JWT verification, role-based access control, input sanitization, and magic-bytes file upload validation.
 - **AI-Agent Ready**: Includes local `.agents/skills/` and `AGENTS.md` to help AI coding assistants follow project rules.
 
 ---
@@ -68,6 +69,7 @@ A complete Next.js starter with Drizzle ORM, local authentication, and selectabl
 ### 2. Go Fiber + Frontend Combo (`frontend+backend`)
 Separate backend and frontend folders for projects that need a Go API:
 * **Backend (`backend/`)**: Go Fiber v3 with GORM and cookie-based JWT authentication
+  - **Architecture Choices**: Clean Architecture or Layered Architecture
   - **SQLite Option**: Pure Go SQLite driver (`github.com/glebarez/sqlite`, zero-CGO required)
   - **PostgreSQL Option**: Standard GORM PostgreSQL driver (`gorm.io/driver/postgres`)
 * **Frontend (`frontend/`)**: Your choice of **Next.js 16 Client** or **React 19 Vite**
@@ -85,6 +87,7 @@ A lightweight React single-page application:
 * **Framework**: React 19 with Vite 6 and TypeScript
 * **Styling**: Tailwind CSS v4 and shadcn UI components
 * **State & Forms**: Zustand store, React Hook Form, and Zod
+* **Layouts**: Responsive, collapsible Sidebar navigation and client route guards
 * **API Client**: Configured Axios instance ready to connect to a backend
 
 ### 4. Discord Bot (`discord-bot`)
@@ -98,8 +101,8 @@ A modern, modular Discord Bot starter:
 ## Project Conventions
 
 ### 1. File Naming Conventions
-* **React & Frontend (PascalCase):** Custom components, schemas, stores, and pages use `PascalCase` (`Navbar.tsx`, `HeroSection.tsx`, `LoginForm.tsx`, `UserSchema.ts`, `AuthStore.ts`).
-  * Exception: Generic UI primitives in `@/components/ui/` keep standard shadcn `kebab-case` (`button.tsx`, `dialog.tsx`).
+* **React & Frontend (PascalCase):** Custom components, layouts, schemas, stores, and pages use `PascalCase` (`Navbar.tsx`, `Sidebar.tsx`, `HeroSection.tsx`, `LoginForm.tsx`, `UserSchema.ts`, `AuthStore.ts`).
+  * Exception: Generic UI primitives in `@/components/ui/` keep standard shadcn `kebab-case` (`button.tsx`, `dialog.tsx`, `sidebar.tsx`).
 * **Golang Backend (lowercase & snake_case):** All Golang files (`.go`) strictly use `lowercase` and `snake_case` (`user_handler.go`, `user_repository.go`, `user_service.go`, `auto_migrate.go`, `read_env.go`, `main.go`). Never use PascalCase or camelCase for Go files.
 * **Discord Bot (Exact Name Match):**
   * Command files in `src/commands/` match the exact slash command name (`ping.ts`, `help.ts`, `serverinfo.ts`).

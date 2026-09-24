@@ -8,6 +8,7 @@ export type Answers = {
   frontend?: "nextjs-fullstack" | "nextjs-frontend" | "react-vite";
   backend?: "go-fiber" | "laravel";
   database?: "sqlite" | "postgres";
+  architecture?: "clean" | "layered";
   username?: string;
 };
 
@@ -24,7 +25,7 @@ export async function runPrompts(targetArg?: string): Promise<Answers> {
       message: "Project name:",
       placeholder: "my-app (or . for current directory)",
       defaultValue: "my-app",
-      validate: (value) => {
+      validate: (value?: string) => {
         if (!value || !value.trim()) return "Project name cannot be empty";
         const trimmed = value.trim();
         if (trimmed === "." || trimmed === "./") return;
@@ -159,7 +160,30 @@ export async function runPrompts(targetArg?: string): Promise<Answers> {
     }
     backend = backendChoice as Answers["backend"];
 
-    // 5. Database selection for Go Fiber
+    // 5. Architecture selection for Go Fiber
+    const archChoice = await select({
+      message: "Select architecture structure for Go Fiber:",
+      options: [
+        {
+          value: "clean",
+          label: "Clean Architecture (Feature / Domain-First)",
+          hint: "internal/user/ (models, dto, repository, service, handler, routes)",
+        },
+        {
+          value: "layered",
+          label: "Layered Architecture (Traditional)",
+          hint: "internal/models, repositories, services, handlers, routes, dto",
+        },
+      ],
+    });
+
+    if (isCancel(archChoice)) {
+      cancel("Operation cancelled.");
+      process.exit(0);
+    }
+    const architecture = archChoice as Answers["architecture"];
+
+    // 6. Database selection for Go Fiber
     const dbChoice = await select({
       message: "Select database for Go Fiber backend:",
       options: [
@@ -182,13 +206,13 @@ export async function runPrompts(targetArg?: string): Promise<Answers> {
     }
     database = dbChoice as "sqlite" | "postgres";
 
-    // 6. Username (for Go module name)
+    // 7. Username (for Go module name)
     if (backend === "go-fiber") {
       const usernameInput = await text({
         message: "GitHub / organization username (for Go module path):",
         placeholder: "vydev",
         defaultValue: "vydev",
-        validate: (value) => {
+        validate: (value?: string) => {
           if (!value || !value.trim()) return "Username cannot be empty";
           return;
         },
@@ -200,6 +224,16 @@ export async function runPrompts(targetArg?: string): Promise<Answers> {
       }
       username = usernameInput as string;
     }
+    return {
+      projectName: projectName as string,
+      isCurrentDir,
+      type: type as Answers["type"],
+      frontend,
+      backend,
+      database,
+      architecture,
+      username,
+    };
   }
 
   return {

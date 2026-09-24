@@ -6,6 +6,8 @@ import (
 
 	"github.com/gofiber/fiber/v3"
 	"github.com/golang-jwt/jwt/v5"
+
+	"go-fiber/internal/pkg"
 )
 
 func Protected(jwtSecret string) fiber.Handler {
@@ -29,7 +31,8 @@ func Protected(jwtSecret string) fiber.Handler {
 			})
 		}
 
-		token, err := jwt.Parse(tokenString, func(t *jwt.Token) (interface{}, error) {
+		var claims pkg.AuthClaims
+		token, err := jwt.ParseWithClaims(tokenString, &claims, func(t *jwt.Token) (interface{}, error) {
 			if _, ok := t.Method.(*jwt.SigningMethodHMAC); !ok {
 				return nil, fmt.Errorf("unexpected signing method: %v", t.Header["alg"])
 			}
@@ -44,17 +47,9 @@ func Protected(jwtSecret string) fiber.Handler {
 			})
 		}
 
-		claims, ok := token.Claims.(jwt.MapClaims)
-		if !ok {
-			return c.Status(fiber.StatusUnauthorized).JSON(fiber.Map{
-				"success": false,
-				"message": "Invalid token claims",
-				"data":    nil,
-			})
-		}
-
-		c.Locals("user_id", claims["user_id"])
-		c.Locals("username", claims["username"])
+		c.Locals("user_id", claims.UserID)
+		c.Locals("username", claims.Username)
+		c.Locals("role", claims.Role)
 
 		return c.Next()
 	}

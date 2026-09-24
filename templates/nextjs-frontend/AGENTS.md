@@ -33,7 +33,17 @@ Before modifying, generating, or refactoring code in this repository, agents MUS
   export type User = z.infer<typeof UserSchema>;
   ```
 
-### 4. UI/UX Craft & Anti-Slop Principles
+### 4. Shadcn Component Reusability & Shared Design Primitives
+- **Never Duplicate Styled Primitives:** Reusable and identical UI elements (buttons with brand accents/gradients, status badges, form inputs, dialog modals, sheet drawers, tooltips, cards) MUST reuse and extend shadcn UI primitives in `components/ui/`.
+- **Accent & Variant Extension:** Add dedicated variants inside `buttonVariants` or component props (e.g. `variant="accent"`, `variant="glow"`, `size="sm"`) rather than writing ad-hoc inline Tailwind strings across multiple pages.
+- **Sidebar Navigation:** Use the provided responsive, collapsible `Sidebar` component (`components/layout/Sidebar.tsx`) for dashboard layouts with active route highlighting.
+
+### 5. Security & Client Error Sanitization
+- **Clean User Notifications:** Display sanitized, friendly error messages from API responses using Toast/Alert components.
+- **Console-Only Debugging:** Log detailed error objects to browser console only during development (`console.error`), never leaking raw stack traces to user-facing modals.
+
+### 6. UI/UX Craft & Anti-Slop Principles
 - **No Em-Dashes (`—`):** Never use em-dashes in user-facing copy or labels.
 - **Single-Line Desktop Actions:** Navbar, primary CTA buttons, and header action rows must remain single-line without awkward wrapping.
 - **Strict WCAG AA:** All text, badges, and form controls must maintain high contrast (minimum 4.5:1).
+

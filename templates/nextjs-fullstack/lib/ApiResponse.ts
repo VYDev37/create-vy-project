@@ -48,9 +48,13 @@ export class ApiResponse {
       return ApiResponse.validationError(err);
     }
 
-    const message = err instanceof Error ? err.message : "An unexpected error occurred";
-    // Log internal error on server without leaking details
     console.error("[API_ERROR]", err);
+
+    const isDev = process.env.NODE_ENV === "development";
+    const message =
+      isDev && err instanceof Error
+        ? err.message
+        : "An unexpected internal server error occurred";
 
     return NextResponse.json(
       {

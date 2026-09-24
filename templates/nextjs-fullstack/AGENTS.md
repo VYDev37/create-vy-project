@@ -42,7 +42,30 @@ Before modifying, generating, or refactoring code in this repository, agents MUS
   export type User = z.infer<typeof UserSchema>;
   ```
 
-### 4. UI/UX Craft & Anti-Slop Principles
+### 4. Shadcn Component Reusability & Shared Design Primitives
+- **Never Duplicate Styled Primitives:** Reusable and identical UI elements (buttons with brand accents/gradients, status badges, form inputs, dialog modals, sheet drawers, tooltips, cards) MUST reuse and extend shadcn UI primitives in `components/ui/`.
+- **Accent & Variant Extension:** Add dedicated variants inside `buttonVariants` or component props (e.g. `variant="accent"`, `variant="glow"`, `size="sm"`) rather than writing ad-hoc inline Tailwind strings across multiple pages.
+- **Sidebar Navigation:** Use the provided responsive, collapsible `Sidebar` component (`components/layout/Sidebar.tsx`) for dashboard layouts with active route highlighting.
+
+### 5. Database Indexing Strategy (When to Index vs When NOT to Index)
+- **When to Index (High Value):**
+  - **Foreign keys & JOIN columns:** Always index references (`userId`, `tenantId`, `orderId`) to avoid full table scans during joins.
+  - **High-cardinality lookup filters:** Unique columns frequently filtered in `WHERE` clauses (`email`, `username`, `slug`, `apiKey`).
+  - **Sorting & Range Queries:** Frequently sorted timestamps in pagination (`createdAt DESC`).
+  - **Composite Indexes:** Multiple columns queried together following the leftmost prefix rule.
+- **When NOT to Index (Avoid Bloat & Slow Writes):**
+  - **Low-cardinality boolean flags alone:** Standalone `isActive` or `isVerified` where full table scan is faster.
+  - **Small / Static Tables:** Tables with < 500 rows.
+  - **High-Throughput Counter Columns:** Rapidly mutated columns (`viewCount`, `lastSeenAt`) where B-tree index rebalancing degrades write throughput.
+  - **Unbounded Text/JSON:** Avoid indexing raw long text without prefix or GIN/GiST.
+
+### 6. Security & Error Leakage Prevention
+- **Zero Internal Error Leakage:** Server Actions and Route Handlers MUST NEVER expose raw database error messages, SQL syntax strings, internal file paths, or stack traces in responses to the client.
+- **Server-Side Logging:** Log raw errors exclusively to the server console (`console.error("[ERROR] ...", error)`).
+- **Sanitized Client Feedback:** Return clean, user-friendly, sanitized messages to the frontend (e.g., `"Invalid credentials"`, `"Resource not found"`).
+
+### 7. UI/UX Craft & Anti-Slop Principles
 - **No Em-Dashes (`—`):** Never use em-dashes in user-facing copy or labels.
 - **Single-Line Desktop Actions:** Navbar, primary CTA buttons, and header action rows must remain single-line without awkward wrapping.
 - **Strict WCAG AA:** All text, badges, and form controls must maintain high contrast (minimum 4.5:1).
+

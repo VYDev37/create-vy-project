@@ -1,34 +1,52 @@
 package handlers
 
 import (
+	"log"
 	"strconv"
 	"time"
 
+	"github.com/go-playground/validator/v10"
 	"github.com/gofiber/fiber/v3"
 
+	"go-fiber/internal/dto"
+	"go-fiber/internal/pkg"
 	"go-fiber/internal/services"
 )
 
 type UserHandler struct {
 	userService services.UserService
+	validator   *validator.Validate
 }
 
 func NewUserHandler(userService services.UserService) *UserHandler {
-	return &UserHandler{userService: userService}
+	return &UserHandler{
+		userService: userService,
+		validator:   pkg.NewValidator(),
+	}
 }
 
 func (h *UserHandler) Register(c fiber.Ctx) error {
-	var req services.RegisterRequest
+	var req dto.RegisterRequest
 	if err := c.Bind().Body(&req); err != nil {
+		log.Printf("[ERROR] Register bind body: %v", err)
 		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{
 			"success": false,
-			"message": "Invalid request payload: " + err.Error(),
+			"message": "Invalid request payload",
+			"data":    nil,
+		})
+	}
+
+	if err := h.validator.Struct(req); err != nil {
+		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{
+			"success": false,
+			"message": pkg.FormatValidationError(err),
 			"data":    nil,
 		})
 	}
 
 	res, err := h.userService.Register(req)
 	if err != nil {
+		log.Printf("[ERROR] Register service: %v", err)
 		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{
 			"success": false,
 			"message": err.Error(),
@@ -42,7 +60,7 @@ func (h *UserHandler) Register(c fiber.Ctx) error {
 		Value:    res.Token,
 		Path:     "/",
 		HTTPOnly: true,
-		Secure:   false, // Set to true in production with HTTPS
+		Secure:   c.Protocol() == "https",
 		SameSite: "Lax",
 		MaxAge:   3600 * 24, // 24 hours in seconds
 	})
@@ -55,20 +73,30 @@ func (h *UserHandler) Register(c fiber.Ctx) error {
 }
 
 func (h *UserHandler) Login(c fiber.Ctx) error {
-	var req services.LoginRequest
+	var req dto.LoginRequest
 	if err := c.Bind().Body(&req); err != nil {
+		log.Printf("[ERROR] Login bind body: %v", err)
 		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{
 			"success": false,
-			"message": "Invalid request payload: " + err.Error(),
+			"message": "Invalid request payload",
+			"data":    nil,
+		})
+	}
+
+	if err := h.validator.Struct(req); err != nil {
+		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{
+			"success": false,
+			"message": pkg.FormatValidationError(err),
 			"data":    nil,
 		})
 	}
 
 	res, err := h.userService.Login(req)
 	if err != nil {
+		log.Printf("[ERROR] Login service: %v", err)
 		return c.Status(fiber.StatusUnauthorized).JSON(fiber.Map{
 			"success": false,
-			"message": err.Error(),
+			"message": "Invalid username or password",
 			"data":    nil,
 		})
 	}
@@ -131,6 +159,7 @@ func (h *UserHandler) GetProfile(c fiber.Ctx) error {
 	case string:
 		parsed, err := strconv.ParseUint(v, 10, 32)
 		if err != nil {
+			log.Printf("[ERROR] GetProfile parse user ID: %v", err)
 			return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{
 				"success": false,
 				"message": "Invalid user ID format",
@@ -148,6 +177,7 @@ func (h *UserHandler) GetProfile(c fiber.Ctx) error {
 
 	user, err := h.userService.GetProfile(userID)
 	if err != nil {
+		log.Printf("[ERROR] GetProfile service: %v", err)
 		return c.Status(fiber.StatusNotFound).JSON(fiber.Map{
 			"success": false,
 			"message": "User not found",
@@ -165,6 +195,7 @@ func (h *UserHandler) GetProfile(c fiber.Ctx) error {
 func (h *UserHandler) GetAllUsers(c fiber.Ctx) error {
 	users, err := h.userService.GetAllUsers()
 	if err != nil {
+		log.Printf("[ERROR] GetAllUsers service: %v", err)
 		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{
 			"success": false,
 			"message": "Failed to fetch users",
@@ -178,3 +209,4 @@ func (h *UserHandler) GetAllUsers(c fiber.Ctx) error {
 		"data":    users,
 	})
 }
+
