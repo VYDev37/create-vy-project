@@ -56,13 +56,32 @@ async function replaceGoModulePaths(dir: string, moduleName: string) {
 }
 
 /**
- * Ensures .gitignore exists, renaming .npmignore if npm pack/publish renamed it.
+ * Ensures .gitignore exists, restoring from _gitignore or .npmignore if npm pack/publish renamed it.
  */
 async function ensureGitignore(destDir: string) {
-  const npmignorePath = path.join(destDir, ".npmignore");
   const gitignorePath = path.join(destDir, ".gitignore");
-  if ((await fs.pathExists(npmignorePath)) && !(await fs.pathExists(gitignorePath))) {
-    await fs.rename(npmignorePath, gitignorePath);
+  const underscoreGitignore = path.join(destDir, "_gitignore");
+  const npmignorePath = path.join(destDir, ".npmignore");
+
+  if (await fs.pathExists(underscoreGitignore)) {
+    await fs.copy(underscoreGitignore, gitignorePath, { overwrite: true });
+    await fs.remove(underscoreGitignore);
+  } else if ((await fs.pathExists(npmignorePath)) && !(await fs.pathExists(gitignorePath))) {
+    await fs.copy(npmignorePath, gitignorePath, { overwrite: true });
+    await fs.remove(npmignorePath);
+  }
+}
+
+/**
+ * Ensures .env exists, copying .env.example if available.
+ */
+async function ensureEnvFile(destDir: string) {
+  const envExamplePath = path.join(destDir, ".env.example");
+  const envPath = path.join(destDir, ".env");
+  if (await fs.pathExists(envExamplePath)) {
+    if (!(await fs.pathExists(envPath))) {
+      await fs.copy(envExamplePath, envPath);
+    }
   }
 }
 
@@ -110,6 +129,9 @@ function getRunCmd(pkg: PackageManager, script: string): string {
 
 function isSafeTemplateFile(src: string): boolean {
   const basename = path.basename(src);
+  if (basename === ".env.example") {
+    return true;
+  }
   if (
     basename === "node_modules" ||
     basename === ".next" ||
@@ -117,7 +139,7 @@ function isSafeTemplateFile(src: string): boolean {
     basename === ".git" ||
     basename === ".env" ||
     basename === ".env.local" ||
-    basename.startsWith(".env.") ||
+    (basename.startsWith(".env.") && basename !== ".env.example") ||
     basename === "pnpm-lock.yaml" ||
     basename === "package-lock.json" ||
     basename === "bun.lock" ||
@@ -169,14 +191,8 @@ export async function scaffold(answers: Answers) {
       filter: (src) => isSafeTemplateFile(src),
     });
 
-    // Create .env from .env.example
-    const envExamplePath = path.join(backendDest, ".env.example");
-    const envPath = path.join(backendDest, ".env");
-    if ((await fs.pathExists(envExamplePath)) && !(await fs.pathExists(envPath))) {
-      await fs.copy(envExamplePath, envPath);
-    }
-
-    // Replace module name in go.mod and .go files
+    // Ensure .env and .gitignore exist
+    await ensureEnvFile(backendDest);
     await replaceGoModulePaths(backendDest, goModuleName);
     await ensureGitignore(backendDest);
     s.stop(`Go Fiber template files copied and module name updated`);
@@ -205,12 +221,8 @@ export async function scaffold(answers: Answers) {
       filter: (src) => isSafeTemplateFile(src),
     });
 
-    // Create .env from .env.example
-    const envExamplePath = path.join(frontendDest, ".env.example");
-    const envPath = path.join(frontendDest, ".env");
-    if ((await fs.pathExists(envExamplePath)) && !(await fs.pathExists(envPath))) {
-      await fs.copy(envExamplePath, envPath);
-    }
+    // Ensure .env and .gitignore exist
+    await ensureEnvFile(frontendDest);
 
     // Update package.json name
     const pkgJsonPath = path.join(frontendDest, "package.json");
@@ -232,11 +244,7 @@ export async function scaffold(answers: Answers) {
       filter: (src) => isSafeTemplateFile(src),
     });
 
-    const envExamplePath = path.join(frontendDest, ".env.example");
-    const envPath = path.join(frontendDest, ".env");
-    if ((await fs.pathExists(envExamplePath)) && !(await fs.pathExists(envPath))) {
-      await fs.copy(envExamplePath, envPath);
-    }
+    await ensureEnvFile(frontendDest);
 
     const pkgJsonPath = path.join(frontendDest, "package.json");
     if (await fs.pathExists(pkgJsonPath)) {
@@ -257,11 +265,7 @@ export async function scaffold(answers: Answers) {
       filter: (src) => isSafeTemplateFile(src),
     });
 
-    const envExamplePath = path.join(frontendDest, ".env.example");
-    const envPath = path.join(frontendDest, ".env");
-    if ((await fs.pathExists(envExamplePath)) && !(await fs.pathExists(envPath))) {
-      await fs.copy(envExamplePath, envPath);
-    }
+    await ensureEnvFile(frontendDest);
 
     const pkgJsonPath = path.join(frontendDest, "package.json");
     if (await fs.pathExists(pkgJsonPath)) {
@@ -281,11 +285,7 @@ export async function scaffold(answers: Answers) {
       filter: (src) => isSafeTemplateFile(src),
     });
 
-    const envExamplePath = path.join(projectRoot, ".env.example");
-    const envPath = path.join(projectRoot, ".env");
-    if ((await fs.pathExists(envExamplePath)) && !(await fs.pathExists(envPath))) {
-      await fs.copy(envExamplePath, envPath);
-    }
+    await ensureEnvFile(projectRoot);
 
     const pkgJsonPath = path.join(projectRoot, "package.json");
     if (await fs.pathExists(pkgJsonPath)) {
